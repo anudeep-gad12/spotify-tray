@@ -271,20 +271,29 @@ struct SearchPanelView: View {
                 tint: .orange
             )
         case .results(let tracks):
-            ScrollView {
-                LazyVStack(spacing: 8) {
-                    ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
-                        SearchResultRow(track: track, isSelected: index == viewModel.selectedIndex)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                viewModel.select(index: index)
-                                viewModel.playSelected()
-                            }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
+                            SearchResultRow(track: track, isSelected: index == viewModel.selectedIndex)
+                                .id(track.id)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    viewModel.select(index: index)
+                                    viewModel.playSelected()
+                                }
+                        }
+                    }
+                    .padding(.bottom, 2)
+                }
+                .scrollIndicators(.hidden)
+                .onChange(of: viewModel.selectedIndex) {
+                    guard tracks.indices.contains(viewModel.selectedIndex) else { return }
+                    withAnimation(.easeInOut(duration: 0.14)) {
+                        proxy.scrollTo(tracks[viewModel.selectedIndex].id, anchor: .center)
                     }
                 }
-                .padding(.bottom, 2)
             }
-            .scrollIndicators(.hidden)
         }
     }
 
@@ -429,14 +438,24 @@ struct SearchPanelView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 10) {
-            if !isSetupState {
-                keyboardHint("Enter", "Play")
-                keyboardHint("Cmd+Enter", "Queue")
-                keyboardHint("↑ ↓", "Move")
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 10) {
+                if !isSetupState {
+                    keyboardHint("Enter", "Play")
+                    keyboardHint("Cmd+Enter", "Queue")
+                    keyboardHint("↑ ↓", "Move")
+                }
+
+                keyboardHint("Esc", "Close")
             }
 
-            keyboardHint("Esc", "Close")
+            if !isSetupState {
+                HStack(spacing: 10) {
+                    keyboardHint("Ctrl+Opt+P", "Pause")
+                    keyboardHint("Ctrl+Opt+N", "Next")
+                    keyboardHint("Ctrl+Opt+B", "Previous")
+                }
+            }
         }
     }
 
