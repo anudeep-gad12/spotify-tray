@@ -257,7 +257,6 @@ final class AppEnvironment: ObservableObject {
             AppLogger.shared.log("queue succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Queued \(track.name)", isError: false)
             searchViewModel.clearQuery()
-            closePanel()
         } catch {
             AppLogger.shared.log("queue failed track=\(track.id) error=\(error.localizedDescription)", category: "playback")
             searchViewModel.setInlineMessage(error.localizedDescription)
