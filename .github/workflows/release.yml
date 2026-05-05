@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate project
+        run: xcodegen generate
+
+      - name: Build unsigned release app
+        run: |
+          xcodebuild \
+            -project SpotifyTray.xcodeproj \
+            -scheme SpotifyTray \
+            -configuration Release \
+            -derivedDataPath .build/DerivedData \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            build
+
+      - name: Package app
+        run: |
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent \
+            ".build/DerivedData/Build/Products/Release/SpotifyTray.app" \
+            "dist/SpotifyTray.app.zip"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SpotifyTray-app
+          path: dist/SpotifyTray.app.zip
+
+      - name: Attach zip to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/SpotifyTray.app.zip

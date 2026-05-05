@@ -1,0 +1,9 @@
+.build/
+DerivedData/
+app.log
+.spotifytray-token.json
+.DS_Store
+*.xcuserstate
+*.xccheckout
+SpotifyTray.xcodeproj/xcuserdata/
+SpotifyTray.xcodeproj/project.xcworkspace/xcuserdata/
