@@ -4,7 +4,9 @@ import Foundation
 final class SearchViewModel: ObservableObject {
     @Published var query = "" {
         didSet {
-            clearMessage()
+            if !query.isEmpty {
+                clearMessage()
+            }
             startDebouncedSearch(for: query)
         }
     }
@@ -133,7 +135,7 @@ final class SearchViewModel: ObservableObject {
         focusRequestID = UUID()
     }
 
-    private func clearMessage() {
+    func clearMessage() {
         inlineMessage = nil
         inlineMessageIsError = false
     }
