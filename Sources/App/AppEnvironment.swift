@@ -238,7 +238,8 @@ final class AppEnvironment: ObservableObject {
             _ = try await authManager.ensureAuthorized()
             try await playbackCoordinator.play(track: track)
             AppLogger.shared.log("play succeeded track=\(track.id)", category: "playback")
-            searchViewModel.setInlineMessage("Playing \(track.name)")
+            searchViewModel.setInlineMessage("Playing \(track.name)", isError: false)
+            searchViewModel.clearQuery()
             closePanel()
         } catch {
             AppLogger.shared.log("play failed track=\(track.id) error=\(error.localizedDescription)", category: "playback")
@@ -254,7 +255,9 @@ final class AppEnvironment: ObservableObject {
             _ = try await authManager.ensureAuthorized()
             try await playbackCoordinator.queue(track: track)
             AppLogger.shared.log("queue succeeded track=\(track.id)", category: "playback")
-            searchViewModel.setInlineMessage("Queued \(track.name)")
+            searchViewModel.setInlineMessage("Queued \(track.name)", isError: false)
+            searchViewModel.clearQuery()
+            closePanel()
         } catch {
             AppLogger.shared.log("queue failed track=\(track.id) error=\(error.localizedDescription)", category: "playback")
             searchViewModel.setInlineMessage(error.localizedDescription)

@@ -137,6 +137,10 @@ final class SearchViewModel: ObservableObject {
         inlineMessage = nil
         inlineMessageIsError = false
     }
+
+    func clearQuery() {
+        query = ""
+    }
 }
 
 extension SearchViewModel {
