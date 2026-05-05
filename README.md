@@ -21,13 +21,24 @@ Requirements:
 
 ## Install
 
-Download the latest `SpotifyTray.app.zip` from GitHub Releases, unzip it, and move `SpotifyTray.app` into `/Applications`.
+Download the latest `SpotifyTray.app.zip` from GitHub Releases, unzip it, and move `SpotifyTray.app` into `~/Applications` (your user Applications folder).
 
-This project ships unsigned by default. On first launch:
+This project ships unsigned by default. macOS will quarantine it after download. Pick one approach:
+
+**Option A — One-liner (terminal):**
+
+```bash
+xattr -dr com.apple.quarantine ~/Applications/SpotifyTray.app
+open ~/Applications/SpotifyTray.app
+```
+
+**Option B — Right-click:**
 
 1. Right-click `SpotifyTray.app`
 2. Click `Open`
 3. Confirm the macOS warning once
+
+If Option B fails, use Option A.
 
 ## First-Time Spotify Setup
 
