@@ -43,39 +43,55 @@ struct SearchPanelView: View {
 
     private var background: some View {
         ZStack {
+            // Deep base gradient
             LinearGradient(
                 colors: [
-                    Color(nsColor: NSColor(calibratedRed: 0.05, green: 0.058, blue: 0.074, alpha: 0.99)),
-                    Color(nsColor: NSColor(calibratedRed: 0.03, green: 0.037, blue: 0.051, alpha: 0.995))
+                    Color(nsColor: NSColor(calibratedRed: 0.055, green: 0.06, blue: 0.08, alpha: 1.0)),
+                    Color(nsColor: NSColor(calibratedRed: 0.03, green: 0.035, blue: 0.05, alpha: 1.0))
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
+            // Subtle top-to-bottom light overlay
             Rectangle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.03),
+                            Color.white.opacity(0.025),
                             Color.clear,
-                            Color.white.opacity(0.012)
+                            Color.white.opacity(0.01)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
 
+            // Top-left ambient glow (green)
             Circle()
-                .fill(Color.green.opacity(0.13))
-                .blur(radius: 92)
-                .frame(width: 260, height: 260)
-                .offset(x: -250, y: -215)
+                .fill(Color.green.opacity(0.15))
+                .blur(radius: 100)
+                .frame(width: 280, height: 280)
+                .offset(x: -260, y: -230)
 
+            // Bottom-right ambient glow (purple)
             Circle()
-                .fill(Color.cyan.opacity(0.075))
-                .blur(radius: 120)
-                .frame(width: 320, height: 320)
-                .offset(x: 260, y: 220)
+                .fill(Color.purple.opacity(0.12))
+                .blur(radius: 130)
+                .frame(width: 340, height: 340)
+                .offset(x: 280, y: 240)
+
+            // Top-right accent glow (cyan)
+            Circle()
+                .fill(Color.cyan.opacity(0.08))
+                .blur(radius: 80)
+                .frame(width: 200, height: 200)
+                .offset(x: 320, y: -180)
+
+            // Subtle noise texture overlay
+            Rectangle()
+                .fill(Color.white.opacity(0.015))
+                .blur(radius: 0.5)
         }
     }
 
@@ -119,11 +135,11 @@ struct SearchPanelView: View {
         HStack(spacing: 14) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.60))
+                .foregroundStyle(Color.green.opacity(0.85))
 
             TextField("Type a track or artist", text: $viewModel.query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .bold, design: .rounded))
                 .foregroundStyle(.white)
                 .focused($focusedField, equals: .search)
                 .disabled(isSetupState)
@@ -134,7 +150,7 @@ struct SearchPanelView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 18))
-                        .foregroundStyle(Color.white.opacity(0.34))
+                        .foregroundStyle(Color.white.opacity(0.30))
                 }
                 .buttonStyle(.plain)
                 .disabled(isSetupState)
@@ -143,13 +159,32 @@ struct SearchPanelView: View {
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(Color.white.opacity(isSetupState ? 0.035 : 0.055))
+            ZStack {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.white.opacity(isSetupState ? 0.035 : 0.05))
+
+                // Inner glow on focus
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .fill(Color.green.opacity(0.04))
+                    .blur(radius: 8)
+            }
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(Color.white.opacity(0.075), lineWidth: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.12),
+                            Color.green.opacity(0.15),
+                            Color.white.opacity(0.08)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    ),
+                    lineWidth: 1
+                )
         )
+        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         .opacity(isSetupState ? 0.64 : 1)
     }
 
@@ -178,10 +213,10 @@ struct SearchPanelView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center) {
                 Text(sectionTitle)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.78))
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.70))
                     .textCase(.uppercase)
-                    .tracking(1.0)
+                    .tracking(1.2)
 
                 Spacer()
 
@@ -194,12 +229,35 @@ struct SearchPanelView: View {
         .padding(18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(Color.white.opacity(0.04))
+            ZStack {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .fill(Color.white.opacity(0.035))
+
+                // Subtle inner highlight at top
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.025),
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            }
         )
         .overlay(
             RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(Color.white.opacity(0.065), lineWidth: 1)
+                .stroke(
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.10),
+                            Color.white.opacity(0.05),
+                            Color.white.opacity(0.03)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
         )
     }
 
@@ -233,11 +291,30 @@ struct SearchPanelView: View {
                 subtitle: "Live search stays focused on tracks and keeps the strongest matches in one view."
             )
         case .loading:
-            emptyState(
-                icon: "waveform.and.magnifyingglass",
-                title: "Searching Spotify",
-                subtitle: "Pulling the strongest matches from the catalog."
-            )
+            VStack(alignment: .leading, spacing: 18) {
+                emptyState(
+                    icon: "waveform.and.magnifyingglass",
+                    title: "Searching Spotify",
+                    subtitle: "Pulling the strongest matches from the catalog."
+                )
+
+                // Animated loading indicator
+                HStack(spacing: 6) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Capsule(style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.green.opacity(0.9), Color.cyan.opacity(0.7)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                            .frame(width: 4, height: 16)
+                            .modifier(BounceAnimation(delay: Double(index) * 0.1))
+                    }
+                }
+                .padding(.top, 8)
+            }
         case .authenticationRequired(let message):
             VStack(alignment: .leading, spacing: 18) {
                 emptyState(
@@ -569,85 +646,196 @@ private struct SearchResultRow: View {
     let track: SpotifyTrack
     let isSelected: Bool
 
+    @State private var isHovered = false
+
     var body: some View {
         HStack(spacing: 14) {
-            AsyncImage(url: track.artworkURL) { image in
-                image
-                    .resizable()
-                    .scaledToFill()
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
-                    .overlay {
-                        Image(systemName: "music.note")
-                            .foregroundStyle(Color.white.opacity(0.28))
-                    }
-            }
-            .frame(width: 52, height: 52)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(Color.white.opacity(0.05), lineWidth: 1)
-            )
+            // Artwork with glow effect when selected
+            ZStack {
+                AsyncImage(url: track.artworkURL) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.white.opacity(0.08), Color.white.opacity(0.04)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .overlay {
+                            Image(systemName: "music.note")
+                                .font(.system(size: 18))
+                                .foregroundStyle(Color.white.opacity(0.25))
+                        }
+                }
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 5) {
+                // Selection ring
+                if isSelected {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.green.opacity(0.6), lineWidth: 2)
+                        .frame(width: 52, height: 52)
+                }
+            }
+
+            // Track info
+            VStack(alignment: .leading, spacing: 4) {
                 Text(track.name)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
-                Text(track.artistLine)
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.70))
-                    .lineLimit(1)
+                HStack(spacing: 6) {
+                    Text(track.artistLine)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(Color.white.opacity(0.70))
+                        .lineLimit(1)
 
-                Text(track.album.name)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.42))
-                    .lineLimit(1)
+                    if !track.album.name.isEmpty {
+                        Text("•")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.30))
+
+                        Text(track.album.name)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.white.opacity(0.40))
+                            .lineLimit(1)
+                    }
+                }
             }
 
             Spacer(minLength: 10)
 
-            if isSelected {
-                Image(systemName: "play.fill")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.black.opacity(0.82))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 8)
+            // Duration badge
+            if let duration = track.durationMs {
+                Text(formatDuration(duration))
+                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.45))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color.green.opacity(0.95))
+                            .fill(Color.white.opacity(0.06))
+                    )
+            }
+
+            // Play indicator
+            if isSelected {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.black.opacity(0.85))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.green.opacity(0.95), Color.cyan.opacity(0.85)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                    )
+            } else if isHovered {
+                Image(systemName: "play.fill")
+                    .font(.system(size: 11, weight: .bold))
+                    .foregroundStyle(Color.green.opacity(0.8))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 7)
+                    .background(
+                        Capsule(style: .continuous)
+                            .fill(Color.green.opacity(0.12))
+                    )
+                    .overlay(
+                        Capsule(style: .continuous)
+                            .stroke(Color.green.opacity(0.25), lineWidth: 1)
                     )
             }
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 12)
         .background(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .fill(
-                    isSelected
-                    ? LinearGradient(
+            ZStack {
+                if isSelected {
+                    LinearGradient(
                         colors: [
-                            Color.green.opacity(0.16),
+                            Color.green.opacity(0.14),
                             Color.cyan.opacity(0.08)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
-                    : LinearGradient(
+                } else if isHovered {
+                    LinearGradient(
                         colors: [
-                            Color.white.opacity(0.045),
+                            Color.white.opacity(0.06),
                             Color.white.opacity(0.03)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-                )
+                } else {
+                    LinearGradient(
+                        colors: [
+                            Color.white.opacity(0.04),
+                            Color.white.opacity(0.025)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                }
+            }
         )
         .overlay(
             RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(isSelected ? Color.green.opacity(0.25) : Color.white.opacity(0.045), lineWidth: 1)
+                .stroke(
+                    isSelected
+                    ? Color.green.opacity(0.30)
+                    : isHovered
+                        ? Color.white.opacity(0.08)
+                        : Color.white.opacity(0.04),
+                    lineWidth: 1
+                )
         )
+        .shadow(color: .black.opacity(isSelected ? 0.12 : 0.06), radius: isSelected ? 6 : 3, y: 2)
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
+    }
+
+    private func formatDuration(_ ms: Int) -> String {
+        let totalSeconds = ms / 1000
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+// MARK: - Loading Animation
+
+private struct BounceAnimation: ViewModifier {
+    let delay: Double
+
+    @State private var isAnimating = false
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(isAnimating ? 1.0 : 0.5)
+            .opacity(isAnimating ? 1.0 : 0.4)
+            .animation(
+                .easeInOut(duration: 0.6)
+                .repeatForever(autoreverses: true)
+                .delay(delay),
+                value: isAnimating
+            )
+            .onAppear {
+                isAnimating = true
+            }
     }
 }

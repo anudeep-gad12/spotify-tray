@@ -6,6 +6,12 @@ struct SpotifyTrack: Decodable, Identifiable, Equatable {
     let artists: [SpotifyArtist]
     let album: SpotifyAlbum
     let uri: String
+    let durationMs: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, artists, album, uri
+        case durationMs = "duration_ms"
+    }
 
     var artistLine: String {
         artists.map(\.name).joined(separator: ", ")

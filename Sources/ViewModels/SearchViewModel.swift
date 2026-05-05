@@ -5,7 +5,7 @@ final class SearchViewModel: ObservableObject {
     @Published var query = "" {
         didSet {
             clearMessage()
-            performSearch(for: query)
+            startDebouncedSearch(for: query)
         }
     }
     @Published private(set) var selectedIndex = 0
@@ -28,7 +28,9 @@ final class SearchViewModel: ObservableObject {
     private let apiClient: SpotifyAPIClient
     let redirectURI: String
     private var searchTask: Task<Void, Never>?
+    private var debounceTask: Task<Void, Never>?
     private var currentResults: [SpotifyTrack] = []
+    private let debounceDelayMs: UInt64 = 400
 
     init(apiClient: SpotifyAPIClient, redirectURI: String) {
         self.apiClient = apiClient
@@ -138,8 +140,30 @@ final class SearchViewModel: ObservableObject {
 }
 
 extension SearchViewModel {
-    func performSearch(for query: String) {
+    private func startDebouncedSearch(for query: String) {
+        debounceTask?.cancel()
         searchTask?.cancel()
+
+        let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedQuery.isEmpty else {
+            currentResults = []
+            selectedIndex = 0
+            panelState = isSpotifyConfigured?() == false ? .setupRequired : .helper
+            return
+        }
+
+        debounceTask = Task {
+            do {
+                try await Task.sleep(for: .milliseconds(debounceDelayMs))
+                guard !Task.isCancelled else { return }
+                performSearch(for: trimmedQuery)
+            } catch {
+                // Task was cancelled, ignore
+            }
+        }
+    }
+
+    private func performSearch(for query: String) {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedQuery.isEmpty else {
             currentResults = []
