@@ -68,9 +68,11 @@ struct SpotifyDevicesResponse: Decodable {
 struct SpotifyPlaybackState: Decodable, Equatable {
     let device: SpotifyDevice?
     let isPlaying: Bool
+    let progressMs: Int?
 
     enum CodingKeys: String, CodingKey {
         case device
         case isPlaying = "is_playing"
+        case progressMs = "progress_ms"
     }
 }

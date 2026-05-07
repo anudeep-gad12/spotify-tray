@@ -44,11 +44,33 @@ actor PlaybackCoordinator {
     }
 
     func previousTrack() async throws {
+        if let playbackState = try await apiClient.currentPlaybackState(),
+           let currentDevice = try? resolvedAddressableDevice(from: playbackState.device),
+           let progressMs = playbackState.progressMs,
+           progressMs > 3_000
+        {
+            if !currentDevice.isActive {
+                try await apiClient.transferPlayback(deviceID: currentDevice.id)
+            }
+            try await apiClient.seek(positionMS: 0, deviceID: currentDevice.id)
+            return
+        }
+
         let device = try await resolvePlaybackDevice()
         if !device.isActive {
             try await apiClient.transferPlayback(deviceID: device.id)
         }
-        try await apiClient.skipPrevious(deviceID: device.id)
+        do {
+            try await apiClient.skipPrevious(deviceID: device.id)
+        } catch let error as SpotifyAPIError {
+            if case .message(let message) = error,
+               message.localizedCaseInsensitiveContains("restriction violated")
+            {
+                try await apiClient.seek(positionMS: 0, deviceID: device.id)
+                return
+            }
+            throw error
+        }
     }
 
     func resolvePlaybackDevice(from devices: [SpotifyDevice]) throws -> AddressableSpotifyDevice {

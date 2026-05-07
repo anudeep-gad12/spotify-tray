@@ -6,6 +6,7 @@ enum SpotifyAPIError: LocalizedError, Equatable {
     case noDevice
     case restrictedDevice
     case premiumRequired
+    case playbackControlUnavailable
     case invalidResponse
     case message(String)
 
@@ -21,6 +22,8 @@ enum SpotifyAPIError: LocalizedError, Equatable {
             return "Spotify reported this device cannot be controlled."
         case .premiumRequired:
             return "Spotify Premium is required for playback control."
+        case .playbackControlUnavailable:
+            return "Spotify couldn't run that playback command right now."
         case .invalidResponse:
             return "Spotify returned an unexpected response."
         case .message(let message):
@@ -175,6 +178,21 @@ actor SpotifyAPIClient {
         )
     }
 
+    func seek(positionMS: Int, deviceID: String) async throws {
+        let token = try await authManager.ensureAuthorized()
+        var components = URLComponents(string: "https://api.spotify.com/v1/me/player/seek")!
+        components.queryItems = [
+            URLQueryItem(name: "position_ms", value: String(max(0, positionMS))),
+            URLQueryItem(name: "device_id", value: deviceID)
+        ]
+        try await sendEmptyRequest(
+            url: components.url!,
+            method: "PUT",
+            token: token.accessToken,
+            body: nil
+        )
+    }
+
     private func sendJSONRequest<Response: Decodable>(
         url: URL,
         method: String,
@@ -226,8 +244,8 @@ actor SpotifyAPIClient {
             request.httpBody = try JSONSerialization.data(withJSONObject: body)
         }
 
-        let (_, response) = try await session.data(for: request)
-        try validate(response: response, data: nil)
+        let (data, response) = try await session.data(for: request)
+        try validate(response: response, data: data)
     }
 
     private func validate(response: URLResponse, data: Data?) throws {
@@ -235,28 +253,77 @@ actor SpotifyAPIClient {
             throw SpotifyAPIError.invalidResponse
         }
 
+        let parsedMessage = spotifyErrorMessage(from: data)
+
         switch httpResponse.statusCode {
         case 200..<300:
             return
         case 401:
             throw SpotifyAPIError.unauthorized
         case 403:
-            throw SpotifyAPIError.premiumRequired
+            throw mapForbiddenError(message: parsedMessage)
         case 404:
             throw SpotifyAPIError.noDevice
         default:
-            if
-                let data,
-                let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                let error = object["error"] as? [String: Any],
-                let message = error["message"] as? String
-            {
-                if message.localizedCaseInsensitiveContains("premium") {
+            if let parsedMessage {
+                if parsedMessage.localizedCaseInsensitiveContains("premium") {
                     throw SpotifyAPIError.premiumRequired
                 }
-                throw SpotifyAPIError.message(message)
+                throw SpotifyAPIError.message(parsedMessage)
             }
             throw SpotifyAPIError.message("Spotify request failed (\(httpResponse.statusCode)).")
         }
+    }
+
+    private func spotifyErrorMessage(from data: Data?) -> String? {
+        guard
+            let data,
+            let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        else {
+            return nil
+        }
+
+        if let error = object["error"] as? [String: Any],
+           let message = error["message"] as? String,
+           !message.isEmpty
+        {
+            return message
+        }
+
+        if let error = object["error"] as? String, !error.isEmpty {
+            return error
+        }
+
+        if let message = object["message"] as? String, !message.isEmpty {
+            return message
+        }
+
+        return nil
+    }
+
+    private func mapForbiddenError(message: String?) -> SpotifyAPIError {
+        guard let message, !message.isEmpty else {
+            return .playbackControlUnavailable
+        }
+
+        let normalized = message.localizedLowercase
+
+        if normalized.contains("premium") {
+            return .premiumRequired
+        }
+
+        if normalized.contains("restricted") {
+            return .restrictedDevice
+        }
+
+        if normalized.contains("no previous")
+            || normalized.contains("nothing to skip")
+            || normalized.contains("unknown command")
+            || normalized.contains("failed")
+        {
+            return .message(message)
+        }
+
+        return .message(message)
     }
 }
