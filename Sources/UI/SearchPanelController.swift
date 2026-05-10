@@ -11,6 +11,8 @@ private final class SearchPanelWindow: NSPanel {
 final class SearchPanelController: NSWindowController, NSWindowDelegate {
     private let environment: AppEnvironment
     private var localEventMonitor: Any?
+    private var previousFrontmostApplication: NSRunningApplication?
+    private var shouldRestorePreviousApplication = false
 
     var isVisible: Bool {
         window?.isVisible == true
@@ -20,7 +22,7 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         self.environment = environment
 
         let panel = SearchPanelWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 800, height: 680),
+            contentRect: NSRect(x: 0, y: 0, width: 800, height: 740),
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -55,12 +57,18 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
 
     func toggle() {
         AppLogger.shared.log("toggle requested visible=\(isVisible)", category: "panel")
-        isVisible ? close() : show()
+        isVisible ? close() : show(capturePreviousApplication: true)
     }
 
-    func show() {
+    func show(capturePreviousApplication: Bool = false) {
         guard let window else { return }
         AppLogger.shared.log("show begin", category: "panel")
+        if capturePreviousApplication {
+            captureFrontmostApplicationForRestoration()
+        } else {
+            shouldRestorePreviousApplication = false
+            previousFrontmostApplication = nil
+        }
         position(window: window)
         NSApp.activate(ignoringOtherApps: true)
         showWindow(nil)
@@ -73,6 +81,7 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         AppLogger.shared.log("close begin", category: "panel")
         super.close()
         window?.orderOut(nil)
+        restorePreviousApplicationIfNeeded()
         AppLogger.shared.log("close end", category: "panel")
     }
 
@@ -133,5 +142,42 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         let originY = screenFrame.maxY - window.frame.height - 80
 
         window.setFrameOrigin(NSPoint(x: originX, y: originY))
+    }
+
+    private func captureFrontmostApplicationForRestoration() {
+        let ownBundleID = Bundle.main.bundleIdentifier
+        let frontmost = NSWorkspace.shared.frontmostApplication
+        if let frontmost, frontmost.bundleIdentifier != ownBundleID {
+            previousFrontmostApplication = frontmost
+            shouldRestorePreviousApplication = true
+            AppLogger.shared.log("captured previous app bundle=\(frontmost.bundleIdentifier ?? "unknown")", category: "panel")
+        } else {
+            previousFrontmostApplication = nil
+            shouldRestorePreviousApplication = false
+        }
+    }
+
+    private func restorePreviousApplicationIfNeeded() {
+        guard shouldRestorePreviousApplication else { return }
+        guard let previousFrontmostApplication else {
+            shouldRestorePreviousApplication = false
+            return
+        }
+
+        let appToRestore = previousFrontmostApplication
+        shouldRestorePreviousApplication = false
+        self.previousFrontmostApplication = nil
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            let ownBundleID = Bundle.main.bundleIdentifier
+            let currentFrontmostBundleID = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+            if let currentFrontmostBundleID, currentFrontmostBundleID != ownBundleID {
+                AppLogger.shared.log("skipped restore because another app is already frontmost", category: "panel")
+                return
+            }
+
+            let restored = appToRestore.activate(options: [.activateAllWindows, .activateIgnoringOtherApps])
+            AppLogger.shared.log("restored previous app bundle=\(appToRestore.bundleIdentifier ?? "unknown") success=\(restored)", category: "panel")
+        }
     }
 }

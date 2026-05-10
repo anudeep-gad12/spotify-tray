@@ -127,6 +127,7 @@ final class AppEnvironment: ObservableObject {
             do {
                 try await playbackCoordinator.playPause()
                 AppLogger.shared.log("playPause succeeded", category: "transport")
+                searchViewModel.refreshNowPlaying()
             } catch {
                 AppLogger.shared.log("playPause failed error=\(error.localizedDescription)", category: "transport")
                 searchViewModel.setInlineMessage(error.localizedDescription)
@@ -146,6 +147,7 @@ final class AppEnvironment: ObservableObject {
             do {
                 try await playbackCoordinator.nextTrack()
                 AppLogger.shared.log("nextTrack succeeded", category: "transport")
+                searchViewModel.refreshNowPlaying()
             } catch {
                 AppLogger.shared.log("nextTrack failed error=\(error.localizedDescription)", category: "transport")
                 searchViewModel.setInlineMessage(error.localizedDescription)
@@ -165,6 +167,7 @@ final class AppEnvironment: ObservableObject {
             do {
                 try await playbackCoordinator.previousTrack()
                 AppLogger.shared.log("previousTrack succeeded", category: "transport")
+                searchViewModel.refreshNowPlaying()
             } catch {
                 AppLogger.shared.log("previousTrack failed error=\(error.localizedDescription)", category: "transport")
                 searchViewModel.setInlineMessage(error.localizedDescription)
@@ -225,6 +228,7 @@ final class AppEnvironment: ObservableObject {
     func signOut() {
         do {
             try authManager.clearStoredAuthorization()
+            searchViewModel.clearNowPlaying()
             searchViewModel.setInlineMessage("Spotify login cleared.", isError: false)
             searchViewModel.prepareForPresentation()
         } catch {
@@ -239,6 +243,7 @@ final class AppEnvironment: ObservableObject {
             try await playbackCoordinator.play(track: track)
             AppLogger.shared.log("play succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Playing \(track.name)", isError: false)
+            searchViewModel.refreshNowPlaying()
             searchViewModel.clearQuery()
             closePanel()
         } catch {
@@ -256,6 +261,7 @@ final class AppEnvironment: ObservableObject {
             try await playbackCoordinator.queue(track: track)
             AppLogger.shared.log("queue succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Queued \(track.name)", isError: false)
+            searchViewModel.refreshNowPlaying()
             searchViewModel.clearQuery()
             // Auto-clear the message after 1.5 seconds
             Task {
@@ -296,6 +302,7 @@ final class AppEnvironment: ObservableObject {
             try clientConfigurationStore.clearClientID()
             try authManager.clearStoredAuthorization()
             searchViewModel.hasSavedClientID = false
+            searchViewModel.clearNowPlaying()
             searchViewModel.setInlineMessage("Saved Spotify setup cleared.", isError: false)
             searchViewModel.presentSetup(clientID: "", hasSavedClientID: false)
             panelController?.show()

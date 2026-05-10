@@ -21,12 +21,16 @@ struct SearchPanelView: View {
                     inlineMessage(message)
                 }
 
+                if shouldShowNowPlayingCard {
+                    nowPlayingCard
+                }
+
                 resultsSurface
                 footer
             }
             .padding(22)
         }
-        .frame(width: 800, height: 680)
+        .frame(width: 800, height: 740)
         .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 30, style: .continuous)
@@ -259,6 +263,115 @@ struct SearchPanelView: View {
                     lineWidth: 1
                 )
         )
+    }
+
+    @ViewBuilder
+    private var nowPlayingCard: some View {
+        switch viewModel.nowPlayingState {
+        case .hidden:
+            EmptyView()
+        case .loading:
+            HStack(spacing: 14) {
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 58, height: 58)
+                    .overlay {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .tint(.white.opacity(0.75))
+                            .scaleEffect(0.72)
+                    }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Now Playing")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color.white.opacity(0.46))
+                        .textCase(.uppercase)
+                        .tracking(1.1)
+
+                    Text("Checking current playback")
+                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white.opacity(0.88))
+
+                    Text("Spotify is syncing what’s on right now.")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.50))
+                }
+
+                Spacer(minLength: 0)
+            }
+            .padding(16)
+            .background(nowPlayingBackground)
+        case .showing(let summary):
+            HStack(spacing: 14) {
+                AsyncImage(url: summary.artworkURL) { image in
+                    image
+                        .resizable()
+                        .scaledToFill()
+                } placeholder: {
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color.white.opacity(0.08))
+                        .overlay {
+                            Image(systemName: "music.note")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(Color.white.opacity(0.34))
+                        }
+                }
+                .frame(width: 58, height: 58)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 8) {
+                        Text("Now Playing")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.46))
+                            .textCase(.uppercase)
+                            .tracking(1.1)
+
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(summary.isPlaying ? Color.green.opacity(0.95) : Color.orange.opacity(0.95))
+                                .frame(width: 7, height: 7)
+
+                            Text(summary.isPlaying ? "Playing" : "Paused")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundStyle(summary.isPlaying ? Color.green.opacity(0.95) : Color.orange.opacity(0.95))
+                        }
+                    }
+
+                    Text(summary.title)
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+
+                    Text(summary.artistLine)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.58))
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+
+                if let deviceName = summary.deviceName, !deviceName.isEmpty {
+                    VStack(alignment: .trailing, spacing: 4) {
+                        Text("Device")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.34))
+                            .textCase(.uppercase)
+                            .tracking(1.0)
+
+                        Text(deviceName)
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundStyle(Color.white.opacity(0.62))
+                            .multilineTextAlignment(.trailing)
+                            .lineLimit(2)
+                    }
+                    .frame(maxWidth: 120, alignment: .trailing)
+                }
+            }
+            .padding(16)
+            .background(nowPlayingBackground)
+        }
     }
 
     @ViewBuilder
@@ -595,6 +708,18 @@ struct SearchPanelView: View {
         return false
     }
 
+    private var shouldShowNowPlayingCard: Bool {
+        switch viewModel.panelState {
+        case .setupRequired, .authenticationRequired:
+            return false
+        case .helper, .loading, .results, .empty, .error:
+            if case .hidden = viewModel.nowPlayingState {
+                return false
+            }
+            return true
+        }
+    }
+
     private var primaryButtonBackground: some View {
         Capsule(style: .continuous)
             .fill(
@@ -603,6 +728,15 @@ struct SearchPanelView: View {
                     startPoint: .leading,
                     endPoint: .trailing
                 )
+            )
+    }
+
+    private var nowPlayingBackground: some View {
+        RoundedRectangle(cornerRadius: 22, style: .continuous)
+            .fill(Color.white.opacity(0.045))
+            .overlay(
+                RoundedRectangle(cornerRadius: 22, style: .continuous)
+                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
             )
     }
 

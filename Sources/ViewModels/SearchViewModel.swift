@@ -1,5 +1,19 @@
 import Foundation
 
+enum NowPlayingState: Equatable {
+    case hidden
+    case loading
+    case showing(NowPlayingSummary)
+}
+
+struct NowPlayingSummary: Equatable {
+    let title: String
+    let artistLine: String
+    let artworkURL: URL?
+    let isPlaying: Bool
+    let deviceName: String?
+}
+
 @MainActor
 final class SearchViewModel: ObservableObject {
     @Published var query = "" {
@@ -16,6 +30,7 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var inlineMessageIsError = false
     @Published private(set) var loginInProgress = false
     @Published private(set) var focusRequestID = UUID()
+    @Published private(set) var nowPlayingState: NowPlayingState = .hidden
     @Published var setupClientID = ""
     @Published var hasSavedClientID = false
 
@@ -31,6 +46,7 @@ final class SearchViewModel: ObservableObject {
     let redirectURI: String
     private var searchTask: Task<Void, Never>?
     private var debounceTask: Task<Void, Never>?
+    private var nowPlayingTask: Task<Void, Never>?
     private var currentResults: [SpotifyTrack] = []
     private let debounceDelayMs: UInt64 = 400
 
@@ -42,8 +58,10 @@ final class SearchViewModel: ObservableObject {
     func prepareForPresentation() {
         clearMessage()
         searchTask?.cancel()
+        nowPlayingTask?.cancel()
 
         guard isSpotifyConfigured?() != false else {
+            nowPlayingState = .hidden
             presentSetup(clientID: currentConfiguredClientID?() ?? "", hasSavedClientID: hasSavedClientID)
             return
         }
@@ -55,12 +73,15 @@ final class SearchViewModel: ObservableObject {
             case .requiresInteractiveLogin:
                 currentResults = []
                 selectedIndex = 0
+                nowPlayingState = .hidden
                 panelState = .authenticationRequired("Sign in to Spotify to search.")
             case .interactiveLoginInProgress:
                 currentResults = []
                 selectedIndex = 0
+                nowPlayingState = .hidden
                 panelState = .authenticationRequired("Finish Spotify login in the browser.")
             case .ready:
+                refreshNowPlaying()
                 if query.isEmpty {
                     currentResults = []
                     selectedIndex = 0
@@ -117,6 +138,7 @@ final class SearchViewModel: ObservableObject {
         searchTask?.cancel()
         currentResults = []
         selectedIndex = 0
+        nowPlayingState = .hidden
         setupClientID = clientID
         self.hasSavedClientID = hasSavedClientID
         panelState = .setupRequired
@@ -142,6 +164,36 @@ final class SearchViewModel: ObservableObject {
 
     func clearQuery() {
         query = ""
+    }
+
+    func refreshNowPlaying() {
+        nowPlayingTask?.cancel()
+
+        guard canShowNowPlaying else {
+            nowPlayingState = .hidden
+            return
+        }
+
+        nowPlayingState = .loading
+        nowPlayingTask = Task {
+            do {
+                let playbackState = try await apiClient.currentPlaybackState()
+                guard !Task.isCancelled else { return }
+                guard let summary = Self.makeNowPlayingSummary(from: playbackState) else {
+                    nowPlayingState = .hidden
+                    return
+                }
+                nowPlayingState = .showing(summary)
+            } catch {
+                guard !Task.isCancelled else { return }
+                nowPlayingState = .hidden
+            }
+        }
+    }
+
+    func clearNowPlaying() {
+        nowPlayingTask?.cancel()
+        nowPlayingState = .hidden
     }
 }
 
@@ -193,10 +245,12 @@ extension SearchViewModel {
             switch authorizationState {
             case .requiresInteractiveLogin:
                 currentResults = []
+                nowPlayingState = .hidden
                 panelState = .authenticationRequired("Sign in to Spotify to search.")
                 return
             case .interactiveLoginInProgress:
                 currentResults = []
+                nowPlayingState = .hidden
                 panelState = .authenticationRequired("Finish Spotify login in the browser.")
                 return
             case .ready:
@@ -215,5 +269,28 @@ extension SearchViewModel {
                 panelState = .error(error.localizedDescription)
             }
         }
+    }
+
+    private var canShowNowPlaying: Bool {
+        switch panelState {
+        case .setupRequired, .authenticationRequired:
+            return false
+        default:
+            return true
+        }
+    }
+
+    private static func makeNowPlayingSummary(from playbackState: SpotifyPlaybackState?) -> NowPlayingSummary? {
+        guard let playbackState, let item = playbackState.item else {
+            return nil
+        }
+
+        return NowPlayingSummary(
+            title: item.name,
+            artistLine: item.artistLine,
+            artworkURL: item.artworkURL,
+            isPlaying: playbackState.isPlaying,
+            deviceName: playbackState.device?.name
+        )
     }
 }

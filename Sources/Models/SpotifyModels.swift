@@ -69,10 +69,57 @@ struct SpotifyPlaybackState: Decodable, Equatable {
     let device: SpotifyDevice?
     let isPlaying: Bool
     let progressMs: Int?
+    let item: SpotifyPlaybackItem?
 
     enum CodingKeys: String, CodingKey {
         case device
         case isPlaying = "is_playing"
         case progressMs = "progress_ms"
+        case item
+    }
+}
+
+struct SpotifyPlaybackItem: Decodable, Equatable {
+    let id: String?
+    let name: String
+    let artists: [SpotifyArtist]
+    let album: SpotifyPlaybackAlbum?
+    let uri: String?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, artists, album, uri
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(String.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        artists = try container.decodeIfPresent([SpotifyArtist].self, forKey: .artists) ?? []
+        album = try container.decodeIfPresent(SpotifyPlaybackAlbum.self, forKey: .album)
+        uri = try container.decodeIfPresent(String.self, forKey: .uri)
+    }
+
+    var artistLine: String {
+        let names = artists.map(\.name).filter { !$0.isEmpty }
+        return names.isEmpty ? "Spotify" : names.joined(separator: ", ")
+    }
+
+    var artworkURL: URL? {
+        album?.images.first?.url
+    }
+}
+
+struct SpotifyPlaybackAlbum: Decodable, Equatable {
+    let name: String?
+    let images: [SpotifyImage]
+
+    enum CodingKeys: String, CodingKey {
+        case name, images
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        name = try container.decodeIfPresent(String.self, forKey: .name)
+        images = try container.decodeIfPresent([SpotifyImage].self, forKey: .images) ?? []
     }
 }
