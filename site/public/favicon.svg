@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="SpotifyTray">
+  <rect width="64" height="64" rx="16" fill="#070b11"/>
+  <rect x="8" y="8" width="48" height="48" rx="14" fill="#10161f" stroke="#2d3743" stroke-width="3"/>
+  <rect x="16" y="20" width="32" height="24" rx="8" fill="#56d364"/>
+  <circle cx="29" cy="32" r="6" fill="none" stroke="#07110a" stroke-width="4"/>
+  <path d="M34 37 L41 44" stroke="#07110a" stroke-width="4" stroke-linecap="round"/>
+</svg>
