@@ -14,13 +14,13 @@ type ButtonProps =
     } & AnchorHTMLAttributes<HTMLAnchorElement>);
 
 const base =
-  "inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-accent/40";
+  "inline-flex items-center justify-center gap-2 rounded-[18px] px-7 py-4 text-base font-black tracking-[-0.02em] transition duration-200 focus:outline-none focus:ring-2 focus:ring-accent/40";
 
 const variants = {
   primary:
-    "bg-accent text-slate-950 shadow-[0_12px_34px_rgba(86,211,100,0.28)] hover:-translate-y-0.5 hover:brightness-110",
+    "bg-white text-black shadow-[0_22px_70px_rgba(255,255,255,0.16)] hover:-translate-y-0.5 hover:bg-white/90",
   secondary:
-    "border border-white/10 bg-white/5 text-white hover:-translate-y-0.5 hover:border-white/20 hover:bg-white/8"
+    "border border-white/12 bg-white/[0.035] text-white hover:-translate-y-0.5 hover:border-white/24 hover:bg-white/[0.07]",
 };
 
 export function Button(props: ButtonProps) {
