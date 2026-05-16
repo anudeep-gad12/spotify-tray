@@ -68,91 +68,101 @@ function LogoMark() {
 }
 
 function ProductMock() {
-  return (
-    <Card className="relative mx-auto max-w-5xl overflow-hidden rounded-[34px] p-4 shadow-hero sm:p-6">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(86,211,100,0.12),transparent_42%)]" />
-      <div className="absolute inset-4 rounded-[28px] border border-dashed border-white/10" />
-      <div className="relative overflow-hidden rounded-[28px] border border-white/10 bg-[#0b0f14]/95 shadow-[0_28px_90px_rgba(0,0,0,0.55)]">
-        <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
-          <div className="flex items-center gap-2">
-            <span className="h-3 w-3 rounded-full bg-[#ff6b6b]" />
-            <span className="h-3 w-3 rounded-full bg-[#ffd166]" />
-            <span className="h-3 w-3 rounded-full bg-[#8ce99a]" />
-          </div>
-          <div className="font-mono text-xs text-white/35">~/SpotifyTray</div>
-          <Badge className="hidden bg-white/[0.07] text-white/70 sm:inline-flex">⌘⇧Space</Badge>
-        </div>
+  const results = [
+    ["Chances", "The Strokes", "Comedown Machine", "3:36", "active"],
+    ["80's Comedown Machine", "The Strokes", "Comedown Machine", "4:58", ""],
+    ["Ode To The Mets", "The Strokes", "The New Abnormal", "5:51", ""],
+    ["The Adults Are Talking", "The Strokes", "The New Abnormal", "5:09", "fade"],
+  ];
 
-        <div className="grid gap-0 lg:grid-cols-[0.34fr_0.66fr]">
-          <aside className="border-b border-white/8 bg-white/[0.025] p-5 lg:border-b-0 lg:border-r">
-            <div className="mb-5 flex items-center gap-3">
-              <LogoMark />
-              <div>
-                <div className="font-black text-white">SpotifyTray</div>
-                <div className="text-xs text-white/42">Searching</div>
+  return (
+    <Card className="relative mx-auto max-w-5xl overflow-hidden rounded-[34px] p-1 shadow-hero sm:p-2">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(86,211,100,0.13),transparent_30%),radial-gradient(circle_at_85%_92%,rgba(168,85,247,0.14),transparent_38%)]" />
+      <div className="relative overflow-hidden rounded-[30px] border border-white/12 bg-[#11151b]/95 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.55)] sm:p-8">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(86,211,100,0.11),transparent_35%),radial-gradient(circle_at_100%_100%,rgba(168,85,247,0.13),transparent_36%)]" />
+        <div className="relative">
+          <div className="mb-8 flex items-start justify-between gap-5">
+            <div>
+              <div className="text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl">SpotifyTray</div>
+              <div className="mt-2 text-sm font-bold text-white/52 sm:text-base">
+                Search, play, and queue tracks on your Mac without touching the Spotify window.
               </div>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white/45">
-              Search workspace
+            <div className="flex shrink-0 flex-col items-end gap-3">
+              <Badge className="hidden bg-white/[0.07] text-white/70 sm:inline-flex">Cmd+Shift+Space</Badge>
+              <Badge className="bg-accent/16 text-accent">● Premium flow</Badge>
             </div>
-            <div className="mt-8 space-y-4 text-sm">
-              {["now-playing", "search-results", "queue-track"].map((item, index) => (
-                <div key={item} className="flex items-center gap-3">
-                  <span className={`h-2.5 w-2.5 rounded-full ${index === 0 ? "bg-accent" : index === 1 ? "bg-cyanSoft" : "bg-violet-300"}`} />
-                  <div>
-                    <div className="font-semibold text-white/80">{item}</div>
-                    <div className="text-white/36">{index === 0 ? "Playing" : index === 1 ? "Working" : "Ready"}</div>
+          </div>
+
+          <div className="mb-5 flex items-center gap-4 rounded-[22px] border border-white/10 bg-white/[0.055] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-6 sm:py-5">
+            <Search className="shrink-0 text-accent" size={24} />
+            <span className="min-w-0 flex-1 truncate text-2xl font-black tracking-[-0.04em] text-white">chances</span>
+            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/12 text-sm font-black text-black/70">×</span>
+          </div>
+
+          <Card className="mb-5 flex items-center gap-4 rounded-[24px] bg-white/[0.045] p-4 sm:p-5">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[conic-gradient(from_90deg,#67e8f9,#f472b6,#fef08a,#67e8f9)] p-1">
+              <div className="h-full w-full rounded-[14px] bg-[repeating-linear-gradient(45deg,#111_0_3px,#fff_3px_5px)] opacity-80" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-white/38">
+                Now playing <span className="text-accent">● Playing</span>
+              </div>
+              <div className="truncate text-xl font-black tracking-[-0.03em] text-white">Under Cover of Darkness</div>
+              <div className="truncate text-sm font-bold text-white/52">The Strokes</div>
+            </div>
+            <div className="hidden text-right text-xs font-black uppercase tracking-[0.18em] text-white/38 sm:block">
+              Device<br /><span className="normal-case tracking-normal text-white/62">Invincible</span>
+            </div>
+          </Card>
+
+          <div className="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.035] p-4 sm:p-5">
+            <div className="mb-4 flex items-center justify-between text-xs font-black uppercase tracking-[0.18em] text-white/48">
+              <span>Results</span>
+              <span>8 live matches</span>
+            </div>
+            <div className="space-y-3">
+              {results.map(([track, artist, album, time, state], index) => (
+                <div
+                  key={track}
+                  className={`flex items-center gap-4 rounded-[20px] border px-4 py-3 ${
+                    state === "active"
+                      ? "border-accent/28 bg-accent/10 shadow-[0_0_0_1px_rgba(86,211,100,0.08)]"
+                      : state === "fade"
+                        ? "border-white/7 bg-white/[0.025] opacity-45"
+                        : "border-white/7 bg-white/[0.035]"
+                  }`}
+                >
+                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xs font-black text-white/75 ${index < 2 ? "bg-gradient-to-br from-red-500 to-red-900" : "bg-[conic-gradient(from_90deg,#67e8f9,#facc15,#f472b6,#67e8f9)]"}`}>
+                    {index < 2 ? "RCA" : ""}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-lg font-black tracking-[-0.03em] text-white">{track}</div>
+                    <div className="truncate text-sm font-bold text-white/48">
+                      {artist} <span className="mx-1 text-white/24">•</span> {album}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="rounded-full bg-white/8 px-3 py-1.5 text-xs font-black text-white/46">{time}</span>
+                    {state === "active" ? (
+                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-black">
+                        <CirclePlay size={20} fill="currentColor" />
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               ))}
             </div>
-          </aside>
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#19151f] to-transparent" />
+          </div>
 
-          <div className="p-5 sm:p-7">
-            <div className="mb-5 flex items-center justify-between">
-              <div>
-                <div className="text-sm font-semibold text-white/45">Popup search</div>
-                <div className="mt-1 text-2xl font-black tracking-tight text-white">Find music without leaving flow.</div>
-              </div>
-              <Badge className="bg-accent text-black">Live</Badge>
-            </div>
-
-            <div className="mb-4 flex items-center gap-3 rounded-[22px] border border-accent/25 bg-accent/10 px-5 py-4 shadow-[0_0_50px_rgba(86,211,100,0.08)]">
-              <Search className="text-accent" size={19} />
-              <span className="text-xl font-black text-white">comedown machine</span>
-              <span className="h-6 w-px animate-pulse bg-accent" />
-            </div>
-
-            <Card className="mb-4 flex items-center gap-4 rounded-[24px] bg-white/[0.035] p-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-red-500 to-red-900 text-xs font-black text-white/80">RCA</div>
-              <div className="min-w-0 flex-1">
-                <div className="mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-white/38">Now playing · <span className="text-accent">Playing</span></div>
-                <div className="truncate text-lg font-black text-white">Partners In Crime</div>
-                <div className="truncate text-sm text-white/52">The Strokes</div>
-              </div>
-              <div className="hidden text-right text-xs font-semibold uppercase tracking-[0.18em] text-white/38 sm:block">
-                Device<br /><span className="normal-case tracking-normal text-white/62">Invincible</span>
-              </div>
-            </Card>
-
-            <div className="rounded-[24px] border border-white/8 bg-white/[0.025] p-4">
-              <div className="mb-4 flex items-center justify-between text-xs font-black uppercase tracking-[0.18em] text-white/36">
-                <span>Top matches</span>
-                <span>8 results</span>
-              </div>
-              <div className="space-y-2">
-                {["Welcome To Japan", "Call It Fate, Call It Karma", "One Way Trigger"].map((track, index) => (
-                  <div key={track} className={`flex items-center gap-3 rounded-2xl border px-3 py-3 ${index === 0 ? "border-accent/25 bg-accent/8" : "border-white/8 bg-black/10"}`}>
-                    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-white/16 to-white/5" />
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate font-bold text-white/86">{track}</div>
-                      <div className="truncate text-xs text-white/42">The Strokes</div>
-                    </div>
-                    <span className="rounded-full bg-white/8 px-3 py-1 text-xs font-bold text-white/55">{index === 0 ? "Enter" : "⌘↩"}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          <div className="mt-5 flex flex-wrap gap-3 text-xs font-black text-white/48">
+            {shortcuts.map(([key, label]) => (
+              <span key={`${key}-${label}`} className="inline-flex items-center gap-2">
+                <kbd className="rounded-full bg-white/10 px-3 py-1 font-mono text-white/82">{key}</kbd>
+                {label}
+              </span>
+            ))}
           </div>
         </div>
       </div>
