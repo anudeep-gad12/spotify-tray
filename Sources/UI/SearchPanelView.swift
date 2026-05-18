@@ -17,6 +17,10 @@ struct SearchPanelView: View {
                 header
                 searchField
 
+                if shouldShowModeSwitcher {
+                    modeSwitcher
+                }
+
                 if let message = viewModel.inlineMessage {
                     inlineMessage(message)
                 }
@@ -190,6 +194,33 @@ struct SearchPanelView: View {
         )
         .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
         .opacity(isSetupState ? 0.64 : 1)
+    }
+
+    private var modeSwitcher: some View {
+        HStack(spacing: 8) {
+            ForEach(SearchPanelMode.allCases) { mode in
+                Button {
+                    viewModel.setMode(mode)
+                } label: {
+                    Text(mode.title)
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(viewModel.activeMode == mode ? Color.black.opacity(0.84) : Color.white.opacity(0.62))
+                        .padding(.horizontal, 13)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule(style: .continuous)
+                                .fill(viewModel.activeMode == mode ? Color.green.opacity(0.92) : Color.white.opacity(0.065))
+                        )
+                        .overlay(
+                            Capsule(style: .continuous)
+                                .stroke(viewModel.activeMode == mode ? Color.cyan.opacity(0.28) : Color.white.opacity(0.07), lineWidth: 1)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer(minLength: 0)
+        }
     }
 
     private func inlineMessage(_ message: String) -> some View {
@@ -376,27 +407,48 @@ struct SearchPanelView: View {
 
     @ViewBuilder
     private var sectionMeta: some View {
-        switch viewModel.panelState {
-        case .results(let tracks):
-            Text("\(tracks.count) live matches")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.42))
-        case .setupRequired:
-            Text("First launch")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.42))
-        default:
-            Text("Top 8")
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.30))
-        }
+        Text(sectionMetaText)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(Color.white.opacity(0.42))
     }
 
     @ViewBuilder
     private var content: some View {
-        switch viewModel.panelState {
-        case .setupRequired:
+        if case .setupRequired = viewModel.panelState {
             setupContent
+        } else if case .authenticationRequired(let message) = viewModel.panelState {
+            authenticationContent(message)
+        } else {
+            switch viewModel.activeMode {
+            case .search:
+                searchContent
+            case .recent:
+                collectionContent(
+                    state: viewModel.recentState,
+                    loadingIcon: "clock.arrow.circlepath",
+                    loadingTitle: "Loading recent tracks",
+                    loadingSubtitle: "Pulling the last songs Spotify says you played.",
+                    emptyIcon: "clock",
+                    emptyTitle: "No recent tracks yet",
+                    emptySubtitle: "Play something in Spotify, then open this again."
+                )
+            case .queue:
+                collectionContent(
+                    state: viewModel.queueState,
+                    loadingIcon: "list.bullet.rectangle",
+                    loadingTitle: "Loading queue",
+                    loadingSubtitle: "Checking what Spotify has lined up next.",
+                    emptyIcon: "text.line.first.and.arrowtriangle.forward",
+                    emptyTitle: "Queue is empty",
+                    emptySubtitle: "Queue a track from search or recent tracks."
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var searchContent: some View {
+        switch viewModel.panelState {
         case .helper:
             emptyState(
                 icon: "sparkles",
@@ -404,49 +456,11 @@ struct SearchPanelView: View {
                 subtitle: "Live search stays focused on tracks and keeps the strongest matches in one view."
             )
         case .loading:
-            VStack(alignment: .leading, spacing: 18) {
-                emptyState(
-                    icon: "waveform.and.magnifyingglass",
-                    title: "Searching Spotify",
-                    subtitle: "Pulling the strongest matches from the catalog."
-                )
-
-                // Animated loading indicator
-                HStack(spacing: 6) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Capsule(style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.green.opacity(0.9), Color.cyan.opacity(0.7)],
-                                    startPoint: .top,
-                                    endPoint: .bottom
-                                )
-                            )
-                            .frame(width: 4, height: 16)
-                            .modifier(BounceAnimation(delay: Double(index) * 0.1))
-                    }
-                }
-                .padding(.top, 8)
-            }
-        case .authenticationRequired(let message):
-            VStack(alignment: .leading, spacing: 18) {
-                emptyState(
-                    icon: "person.crop.circle.badge.checkmark",
-                    title: "Connect Spotify",
-                    subtitle: message
-                )
-
-                Button(viewModel.loginInProgress ? "Waiting For Spotify..." : "Login / Reconnect") {
-                    viewModel.requestLogin()
-                }
-                .buttonStyle(.plain)
-                .disabled(viewModel.loginInProgress)
-                .padding(.horizontal, 18)
-                .padding(.vertical, 12)
-                .background(primaryButtonBackground)
-                .foregroundStyle(Color.black.opacity(0.86))
-                .font(.system(size: 14, weight: .bold))
-            }
+            loadingState(
+                icon: "waveform.and.magnifyingglass",
+                title: "Searching Spotify",
+                subtitle: "Pulling the strongest matches from the catalog."
+            )
         case .empty:
             emptyState(
                 icon: "music.note",
@@ -460,28 +474,104 @@ struct SearchPanelView: View {
                 subtitle: message,
                 tint: .orange
             )
-        case .results(let tracks):
-            ScrollViewReader { proxy in
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(Array(tracks.enumerated()), id: \.element.id) { index, track in
-                            SearchResultRow(track: track, isSelected: index == viewModel.selectedIndex)
-                                .id(track.id)
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    viewModel.select(index: index)
-                                    viewModel.playSelected()
-                                }
-                        }
-                    }
-                    .padding(.bottom, 2)
+        case .results:
+            trackList(viewModel.searchItems)
+        case .setupRequired, .authenticationRequired:
+            EmptyView()
+        }
+    }
+
+    @ViewBuilder
+    private func collectionContent(
+        state: TrackCollectionState,
+        loadingIcon: String,
+        loadingTitle: String,
+        loadingSubtitle: String,
+        emptyIcon: String,
+        emptyTitle: String,
+        emptySubtitle: String
+    ) -> some View {
+        switch state {
+        case .idle, .loading:
+            loadingState(icon: loadingIcon, title: loadingTitle, subtitle: loadingSubtitle)
+        case .loaded(let items):
+            trackList(items)
+        case .empty:
+            emptyState(icon: emptyIcon, title: emptyTitle, subtitle: emptySubtitle)
+        case .error(let message):
+            emptyState(
+                icon: "exclamationmark.octagon.fill",
+                title: "Couldn’t load this view",
+                subtitle: message,
+                tint: .orange
+            )
+        }
+    }
+
+    private func authenticationContent(_ message: String) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            emptyState(
+                icon: "person.crop.circle.badge.checkmark",
+                title: "Connect Spotify",
+                subtitle: message
+            )
+
+            Button(viewModel.loginInProgress ? "Waiting For Spotify..." : "Login / Reconnect") {
+                viewModel.requestLogin()
+            }
+            .buttonStyle(.plain)
+            .disabled(viewModel.loginInProgress)
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
+            .background(primaryButtonBackground)
+            .foregroundStyle(Color.black.opacity(0.86))
+            .font(.system(size: 14, weight: .bold))
+        }
+    }
+
+    private func loadingState(icon: String, title: String, subtitle: String) -> some View {
+        VStack(alignment: .leading, spacing: 18) {
+            emptyState(icon: icon, title: title, subtitle: subtitle)
+
+            HStack(spacing: 6) {
+                ForEach(0..<5, id: \.self) { index in
+                    Capsule(style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.green.opacity(0.9), Color.cyan.opacity(0.7)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 4, height: 16)
+                        .modifier(BounceAnimation(delay: Double(index) * 0.1))
                 }
-                .scrollIndicators(.hidden)
-                .onChange(of: viewModel.selectedIndex) {
-                    guard tracks.indices.contains(viewModel.selectedIndex) else { return }
-                    withAnimation(.easeInOut(duration: 0.14)) {
-                        proxy.scrollTo(tracks[viewModel.selectedIndex].id, anchor: .center)
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    private func trackList(_ items: [TrackListItem]) -> some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        TrackListRow(item: item, isSelected: index == viewModel.selectedIndex)
+                            .id(item.id)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                viewModel.select(index: index)
+                                viewModel.playSelected()
+                            }
                     }
+                }
+                .padding(.bottom, 2)
+            }
+            .scrollIndicators(.hidden)
+            .onChange(of: viewModel.selectedIndex) {
+                guard items.indices.contains(viewModel.selectedIndex) else { return }
+                withAnimation(.easeInOut(duration: 0.14)) {
+                    proxy.scrollTo(items[viewModel.selectedIndex].id, anchor: .center)
                 }
             }
         }
@@ -645,26 +735,69 @@ struct SearchPanelView: View {
                     keyboardHint("Ctrl+Opt+N", "Next")
                     keyboardHint("Ctrl+Opt+B", "Previous")
                 }
+
+                HStack(spacing: 10) {
+                    keyboardHint("Tab", "Next tab")
+                    keyboardHint("Shift+Tab", "Previous tab")
+                }
             }
         }
     }
 
     private var sectionTitle: String {
-        switch viewModel.panelState {
-        case .setupRequired:
+        if case .setupRequired = viewModel.panelState {
             return "Setup"
-        case .results:
-            return "Results"
-        case .loading:
-            return "Searching"
-        case .authenticationRequired:
+        }
+        if case .authenticationRequired = viewModel.panelState {
             return "Connection"
-        case .empty:
-            return "No Results"
-        case .error:
-            return "Error"
-        case .helper:
-            return "Discover"
+        }
+
+        switch viewModel.activeMode {
+        case .search:
+            switch viewModel.panelState {
+            case .results:
+                return "Results"
+            case .loading:
+                return "Searching"
+            case .empty:
+                return "No Results"
+            case .error:
+                return "Error"
+            default:
+                return "Discover"
+            }
+        case .recent:
+            return "Recent"
+        case .queue:
+            return "Queue"
+        }
+    }
+
+    private var sectionMetaText: String {
+        if case .setupRequired = viewModel.panelState {
+            return "First launch"
+        }
+        if case .authenticationRequired = viewModel.panelState {
+            return "Reconnect"
+        }
+
+        switch viewModel.activeMode {
+        case .search:
+            if case .results(let tracks) = viewModel.panelState {
+                return "\(tracks.count) live matches"
+            }
+            return "Top 8"
+        case .recent:
+            if case .loaded(let items) = viewModel.recentState {
+                return "Last \(items.count) tracks"
+            }
+            return "Last 20"
+        case .queue:
+            if case .loaded(let items) = viewModel.queueState {
+                let upcoming = max(0, items.count - 1)
+                return upcoming == 1 ? "Now playing + 1 upcoming" : "Now playing + \(upcoming) upcoming"
+            }
+            return "Current session"
         }
     }
 
@@ -706,6 +839,15 @@ struct SearchPanelView: View {
             return true
         }
         return false
+    }
+
+    private var shouldShowModeSwitcher: Bool {
+        switch viewModel.panelState {
+        case .setupRequired, .authenticationRequired:
+            return false
+        default:
+            return true
+        }
     }
 
     private var shouldShowNowPlayingCard: Bool {
@@ -776,11 +918,15 @@ struct SearchPanelView: View {
     }
 }
 
-private struct SearchResultRow: View {
-    let track: SpotifyTrack
+private struct TrackListRow: View {
+    let item: TrackListItem
     let isSelected: Bool
 
     @State private var isHovered = false
+
+    private var track: SpotifyTrack {
+        item.track
+    }
 
     var body: some View {
         HStack(spacing: 14) {
@@ -837,6 +983,17 @@ private struct SearchResultRow: View {
                         Text(track.album.name)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(Color.white.opacity(0.40))
+                            .lineLimit(1)
+                    }
+
+                    if let metadata = item.metadata {
+                        Text("•")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(Color.white.opacity(0.30))
+
+                        Text(metadata)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.green.opacity(0.62))
                             .lineLimit(1)
                     }
                 }

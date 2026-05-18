@@ -244,6 +244,7 @@ final class AppEnvironment: ObservableObject {
             AppLogger.shared.log("play succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Playing \(track.name)", isError: false)
             searchViewModel.refreshNowPlaying()
+            searchViewModel.refreshQueueAfterPlaybackChange()
             searchViewModel.clearQuery()
             closePanel()
         } catch {
@@ -262,6 +263,7 @@ final class AppEnvironment: ObservableObject {
             AppLogger.shared.log("queue succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Queued \(track.name)", isError: false)
             searchViewModel.refreshNowPlaying()
+            searchViewModel.refreshQueueAfterPlaybackChange()
             searchViewModel.clearQuery()
             // Auto-clear the message after 1.5 seconds
             Task {

@@ -200,7 +200,7 @@ final class SpotifyAuthManager: NSObject, @unchecked Sendable {
             URLQueryItem(name: "response_type", value: "code"),
             URLQueryItem(name: "client_id", value: clientID),
             URLQueryItem(name: "redirect_uri", value: configuration.redirectURI),
-            URLQueryItem(name: "scope", value: "user-read-playback-state user-modify-playback-state"),
+            URLQueryItem(name: "scope", value: "user-read-playback-state user-modify-playback-state user-read-recently-played"),
             URLQueryItem(name: "code_challenge_method", value: "S256"),
             URLQueryItem(name: "code_challenge", value: pkce.codeChallenge),
             URLQueryItem(name: "state", value: state)

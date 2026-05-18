@@ -106,20 +106,24 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
             case kVK_Escape:
                 self.environment.closePanel()
                 return nil
+            case kVK_Tab:
+                guard self.environment.searchViewModel.canSwitchModes else { return event }
+                self.environment.searchViewModel.cycleMode(backwards: event.modifierFlags.contains(.shift))
+                return nil
             case kVK_UpArrow:
-                if case .results = self.environment.searchViewModel.panelState {
+                if self.environment.searchViewModel.canMoveSelection {
                     self.environment.searchViewModel.moveSelection(by: -1)
                     return nil
                 }
                 return event
             case kVK_DownArrow:
-                if case .results = self.environment.searchViewModel.panelState {
+                if self.environment.searchViewModel.canMoveSelection {
                     self.environment.searchViewModel.moveSelection(by: 1)
                     return nil
                 }
                 return event
             case kVK_Return:
-                if case .results = self.environment.searchViewModel.panelState {
+                if self.environment.searchViewModel.canMoveSelection {
                     if event.modifierFlags.contains(.command) {
                         self.environment.searchViewModel.queueSelected()
                     } else {

@@ -73,6 +73,30 @@ actor SpotifyAPIClient {
         return response.tracks.items
     }
 
+    func currentQueue() async throws -> SpotifyQueueResponse {
+        let token = try await authManager.ensureAuthorized()
+        return try await sendJSONRequest(
+            url: URL(string: "https://api.spotify.com/v1/me/player/queue")!,
+            method: "GET",
+            token: token.accessToken
+        )
+    }
+
+    func recentlyPlayedTracks(limit: Int = 20) async throws -> [SpotifyRecentlyPlayedItem] {
+        let token = try await authManager.ensureAuthorized()
+        var components = URLComponents(string: "https://api.spotify.com/v1/me/player/recently-played")!
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: String(max(1, min(limit, 50))))
+        ]
+
+        let response: SpotifyRecentlyPlayedResponse = try await sendJSONRequest(
+            url: components.url!,
+            method: "GET",
+            token: token.accessToken
+        )
+        return response.items
+    }
+
     func availableDevices() async throws -> [SpotifyDevice] {
         let token = try await authManager.ensureAuthorized()
         let response: SpotifyDevicesResponse = try await sendJSONRequest(

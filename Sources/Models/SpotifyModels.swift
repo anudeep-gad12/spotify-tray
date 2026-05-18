@@ -45,6 +45,92 @@ struct SpotifyTrackContainer: Decodable {
     let items: [SpotifyTrack]
 }
 
+struct SpotifyQueueResponse: Decodable, Equatable {
+    let currentlyPlaying: SpotifyTrack?
+    let queue: [SpotifyTrack]
+
+    enum CodingKeys: String, CodingKey {
+        case currentlyPlaying = "currently_playing"
+        case queue
+    }
+
+    init(currentlyPlaying: SpotifyTrack?, queue: [SpotifyTrack]) {
+        self.currentlyPlaying = currentlyPlaying
+        self.queue = queue
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        currentlyPlaying = try container.decodeIfPresent(SpotifyQueueTrack.self, forKey: .currentlyPlaying)?.track
+        queue = try container.decodeIfPresent([SpotifyQueueTrack].self, forKey: .queue)?.compactMap(\.track) ?? []
+    }
+}
+
+struct SpotifyRecentlyPlayedResponse: Decodable, Equatable {
+    let items: [SpotifyRecentlyPlayedItem]
+}
+
+struct SpotifyRecentlyPlayedItem: Decodable, Equatable {
+    let track: SpotifyTrack
+    let playedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case track
+        case playedAt = "played_at"
+    }
+
+    init(track: SpotifyTrack, playedAt: Date?) {
+        self.track = track
+        self.playedAt = playedAt
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        track = try container.decode(SpotifyTrack.self, forKey: .track)
+        if let playedAtString = try container.decodeIfPresent(String.self, forKey: .playedAt) {
+            playedAt = ISO8601DateFormatter.spotifyDate(from: playedAtString)
+        } else {
+            playedAt = nil
+        }
+    }
+}
+
+private struct SpotifyQueueTrack: Decodable {
+    let track: SpotifyTrack?
+
+    enum CodingKeys: String, CodingKey {
+        case type
+        case uri
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let type = try container.decodeIfPresent(String.self, forKey: .type)
+        let uri = try container.decodeIfPresent(String.self, forKey: .uri)
+
+        guard type == "track" || uri?.hasPrefix("spotify:track:") == true else {
+            track = nil
+            return
+        }
+
+        track = try? SpotifyTrack(from: decoder)
+    }
+}
+
+private extension ISO8601DateFormatter {
+    static func spotifyDate(from string: String) -> Date? {
+        let fractionalFormatter = ISO8601DateFormatter()
+        fractionalFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        if let date = fractionalFormatter.date(from: string) {
+            return date
+        }
+
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter.date(from: string)
+    }
+}
+
 struct SpotifyDevice: Decodable, Equatable {
     let id: String?
     let isActive: Bool
