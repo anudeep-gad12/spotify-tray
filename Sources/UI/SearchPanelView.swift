@@ -13,7 +13,7 @@ struct SearchPanelView: View {
         ZStack {
             background
 
-            VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 16) {
                 header
                 searchField
 
@@ -32,15 +32,22 @@ struct SearchPanelView: View {
                 resultsSurface
                 footer
             }
-            .padding(22)
+            .padding(24)
         }
         .frame(width: 800, height: 740)
-        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
-                .strokeBorder(Color.white.opacity(0.08), lineWidth: 1)
+            RoundedRectangle(cornerRadius: 34, style: .continuous)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.16), Color.white.opacity(0.055)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
         )
-        .shadow(color: .black.opacity(0.36), radius: 38, y: 18)
+        .shadow(color: .black.opacity(0.62), radius: 46, y: 24)
         .onAppear {
             requestFocus()
         }
@@ -51,55 +58,45 @@ struct SearchPanelView: View {
 
     private var background: some View {
         ZStack {
-            // Deep base gradient
             LinearGradient(
                 colors: [
-                    Color(nsColor: NSColor(calibratedRed: 0.055, green: 0.06, blue: 0.08, alpha: 1.0)),
-                    Color(nsColor: NSColor(calibratedRed: 0.03, green: 0.035, blue: 0.05, alpha: 1.0))
+                    Color.panelCanvas,
+                    Color.panelSurface.opacity(0.96),
+                    Color.panelCanvas
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
 
-            // Subtle top-to-bottom light overlay
+            PanelGrid()
+                .opacity(0.42)
+
+            Circle()
+                .fill(Color.accentGreen.opacity(0.12))
+                .blur(radius: 96)
+                .frame(width: 310, height: 310)
+                .offset(x: -285, y: -245)
+
+            Circle()
+                .fill(Color.purple.opacity(0.11))
+                .blur(radius: 130)
+                .frame(width: 360, height: 360)
+                .offset(x: 300, y: 255)
+
+            Circle()
+                .fill(Color.accentCyan.opacity(0.075))
+                .blur(radius: 80)
+                .frame(width: 220, height: 220)
+                .offset(x: 320, y: -180)
+
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.025),
-                            Color.clear,
-                            Color.white.opacity(0.01)
-                        ],
+                        colors: [Color.white.opacity(0.028), Color.clear, Color.black.opacity(0.12)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
                 )
-
-            // Top-left ambient glow (green)
-            Circle()
-                .fill(Color.green.opacity(0.15))
-                .blur(radius: 100)
-                .frame(width: 280, height: 280)
-                .offset(x: -260, y: -230)
-
-            // Bottom-right ambient glow (purple)
-            Circle()
-                .fill(Color.purple.opacity(0.12))
-                .blur(radius: 130)
-                .frame(width: 340, height: 340)
-                .offset(x: 280, y: 240)
-
-            // Top-right accent glow (cyan)
-            Circle()
-                .fill(Color.cyan.opacity(0.08))
-                .blur(radius: 80)
-                .frame(width: 200, height: 200)
-                .offset(x: 320, y: -180)
-
-            // Subtle noise texture overlay
-            Rectangle()
-                .fill(Color.white.opacity(0.015))
-                .blur(radius: 0.5)
         }
     }
 
@@ -107,12 +104,14 @@ struct SearchPanelView: View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("SpotifyTray")
-                    .font(.system(size: 31, weight: .bold, design: .rounded))
+                    .font(.system(size: 32, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
+                    .tracking(-1.1)
 
                 Text(headerSubtitle)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.62))
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundStyle(Color.white.opacity(0.48))
+                    .lineLimit(2)
             }
 
             Spacer()
@@ -133,7 +132,11 @@ struct SearchPanelView: View {
                 .padding(.vertical, 9)
                 .background(
                     Capsule(style: .continuous)
-                        .fill(statusTint.opacity(0.10))
+                        .fill(statusTint.opacity(0.11))
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(statusTint.opacity(0.13), lineWidth: 1)
                 )
             }
         }
@@ -143,11 +146,11 @@ struct SearchPanelView: View {
         HStack(spacing: 14) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(Color.green.opacity(0.85))
+                .foregroundStyle(Color.accentGreen.opacity(0.86))
 
             TextField("Type a track or artist", text: $viewModel.query)
                 .textFieldStyle(.plain)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .font(.system(size: 22, weight: .black, design: .rounded))
                 .foregroundStyle(.white)
                 .focused($focusedField, equals: .search)
                 .disabled(isSetupState)
@@ -169,11 +172,10 @@ struct SearchPanelView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.white.opacity(isSetupState ? 0.035 : 0.05))
+                    .fill(Color.cardFill.opacity(isSetupState ? 0.58 : 0.92))
 
-                // Inner glow on focus
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.green.opacity(0.04))
+                    .fill(Color.accentGreen.opacity(0.035))
                     .blur(radius: 8)
             }
         )
@@ -183,8 +185,8 @@ struct SearchPanelView: View {
                     LinearGradient(
                         colors: [
                             Color.white.opacity(0.12),
-                            Color.green.opacity(0.15),
-                            Color.white.opacity(0.08)
+                            Color.accentGreen.opacity(0.10),
+                            Color.white.opacity(0.055)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -197,23 +199,24 @@ struct SearchPanelView: View {
     }
 
     private var modeSwitcher: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 6) {
             ForEach(SearchPanelMode.allCases) { mode in
+                let isActive = viewModel.activeMode == mode
                 Button {
                     viewModel.setMode(mode)
                 } label: {
                     Text(mode.title)
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundStyle(viewModel.activeMode == mode ? Color.black.opacity(0.84) : Color.white.opacity(0.62))
-                        .padding(.horizontal, 13)
+                        .font(.system(size: 12, weight: .black))
+                        .foregroundStyle(isActive ? Color.black.opacity(0.88) : Color.white.opacity(0.54))
+                        .padding(.horizontal, 14)
                         .padding(.vertical, 8)
                         .background(
                             Capsule(style: .continuous)
-                                .fill(viewModel.activeMode == mode ? Color.green.opacity(0.92) : Color.white.opacity(0.065))
+                                .fill(isActive ? Color.accentGreen.opacity(0.94) : Color.clear)
                         )
                         .overlay(
                             Capsule(style: .continuous)
-                                .stroke(viewModel.activeMode == mode ? Color.cyan.opacity(0.28) : Color.white.opacity(0.07), lineWidth: 1)
+                                .stroke(isActive ? Color.accentCyan.opacity(0.22) : Color.clear, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.plain)
@@ -221,12 +224,21 @@ struct SearchPanelView: View {
 
             Spacer(minLength: 0)
         }
+        .padding(4)
+        .background(
+            Capsule(style: .continuous)
+                .fill(Color.black.opacity(0.22))
+        )
+        .overlay(
+            Capsule(style: .continuous)
+                .stroke(Color.white.opacity(0.075), lineWidth: 1)
+        )
     }
 
     private func inlineMessage(_ message: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: viewModel.inlineMessageIsError ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
-                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange : Color.green)
+                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange : Color.accentGreen)
 
             Text(message)
                 .font(.system(size: 13, weight: .semibold))
@@ -236,22 +248,22 @@ struct SearchPanelView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(viewModel.inlineMessageIsError ? Color.orange.opacity(0.11) : Color.green.opacity(0.08))
+                .fill(viewModel.inlineMessageIsError ? Color.orange.opacity(0.10) : Color.accentGreen.opacity(0.075))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(viewModel.inlineMessageIsError ? Color.orange.opacity(0.18) : Color.green.opacity(0.12), lineWidth: 1)
+                .stroke(viewModel.inlineMessageIsError ? Color.orange.opacity(0.18) : Color.accentGreen.opacity(0.11), lineWidth: 1)
         )
     }
 
     private var resultsSurface: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 15) {
             HStack(alignment: .center) {
                 Text(sectionTitle)
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.70))
+                    .font(.system(size: 12, weight: .black))
+                    .foregroundStyle(Color.white.opacity(0.64))
                     .textCase(.uppercase)
-                    .tracking(1.2)
+                    .tracking(1.6)
 
                 Spacer()
 
@@ -266,12 +278,11 @@ struct SearchPanelView: View {
         .background(
             ZStack {
                 RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color.white.opacity(0.035))
+                    .fill(Color.cardFill.opacity(0.84))
 
-                // Subtle inner highlight at top
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.025),
+                        Color.white.opacity(0.030),
                         Color.clear
                     ],
                     startPoint: .top,
@@ -284,9 +295,9 @@ struct SearchPanelView: View {
                 .stroke(
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.10),
-                            Color.white.opacity(0.05),
-                            Color.white.opacity(0.03)
+                            Color.white.opacity(0.12),
+                            Color.white.opacity(0.055),
+                            Color.white.opacity(0.035)
                         ],
                         startPoint: .top,
                         endPoint: .bottom
@@ -304,24 +315,24 @@ struct SearchPanelView: View {
         case .loading:
             HStack(spacing: 14) {
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
+                    .fill(Color.white.opacity(0.055))
                     .frame(width: 58, height: 58)
                     .overlay {
                         ProgressView()
                             .progressViewStyle(.circular)
-                            .tint(.white.opacity(0.75))
+                            .tint(Color.accentGreen.opacity(0.85))
                             .scaleEffect(0.72)
                     }
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text("Now Playing")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundStyle(Color.white.opacity(0.46))
+                        .font(.system(size: 11, weight: .black))
+                        .foregroundStyle(Color.white.opacity(0.40))
                         .textCase(.uppercase)
-                        .tracking(1.1)
+                        .tracking(1.6)
 
                     Text("Checking current playback")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                        .font(.system(size: 15, weight: .black, design: .rounded))
                         .foregroundStyle(.white.opacity(0.88))
 
                     Text("Spotify is syncing what’s on right now.")
@@ -341,7 +352,7 @@ struct SearchPanelView: View {
                         .scaledToFill()
                 } placeholder: {
                     RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.08))
+                        .fill(Color.white.opacity(0.055))
                         .overlay {
                             Image(systemName: "music.note")
                                 .font(.system(size: 18, weight: .semibold))
@@ -354,24 +365,24 @@ struct SearchPanelView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 8) {
                         Text("Now Playing")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.46))
+                            .font(.system(size: 11, weight: .black))
+                            .foregroundStyle(Color.white.opacity(0.40))
                             .textCase(.uppercase)
-                            .tracking(1.1)
+                            .tracking(1.6)
 
                         HStack(spacing: 5) {
                             Circle()
-                                .fill(summary.isPlaying ? Color.green.opacity(0.95) : Color.orange.opacity(0.95))
+                                .fill(summary.isPlaying ? Color.accentGreen.opacity(0.95) : Color.orange.opacity(0.95))
                                 .frame(width: 7, height: 7)
 
                             Text(summary.isPlaying ? "Playing" : "Paused")
-                                .font(.system(size: 11, weight: .bold))
-                                .foregroundStyle(summary.isPlaying ? Color.green.opacity(0.95) : Color.orange.opacity(0.95))
+                                .font(.system(size: 11, weight: .black))
+                                .foregroundStyle(summary.isPlaying ? Color.accentGreen.opacity(0.95) : Color.orange.opacity(0.95))
                         }
                     }
 
                     Text(summary.title)
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .font(.system(size: 18, weight: .black, design: .rounded))
                         .foregroundStyle(.white)
                         .lineLimit(1)
 
@@ -386,10 +397,10 @@ struct SearchPanelView: View {
                 if let deviceName = summary.deviceName, !deviceName.isEmpty {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("Device")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.34))
+                            .font(.system(size: 10, weight: .black))
+                            .foregroundStyle(Color.white.opacity(0.32))
                             .textCase(.uppercase)
-                            .tracking(1.0)
+                            .tracking(1.3)
 
                         Text(deviceName)
                             .font(.system(size: 12, weight: .semibold))
@@ -409,7 +420,7 @@ struct SearchPanelView: View {
     private var sectionMeta: some View {
         Text(sectionMetaText)
             .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.42))
+            .foregroundStyle(Color.white.opacity(0.38))
     }
 
     @ViewBuilder
@@ -538,7 +549,7 @@ struct SearchPanelView: View {
                     Capsule(style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color.green.opacity(0.9), Color.cyan.opacity(0.7)],
+                                colors: [Color.accentGreen.opacity(0.86), Color.accentCyan.opacity(0.62)],
                                 startPoint: .top,
                                 endPoint: .bottom
                             )
@@ -581,7 +592,7 @@ struct SearchPanelView: View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Bring your own Spotify app")
-                    .font(.system(size: 23, weight: .bold, design: .rounded))
+                    .font(.system(size: 23, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
 
                 Text("Create a Spotify developer app, add the redirect below, then paste its Client ID here. The value stays local to this Mac.")
@@ -598,10 +609,10 @@ struct SearchPanelView: View {
 
             VStack(alignment: .leading, spacing: 10) {
                 Text("Spotify Client ID")
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.82))
+                    .font(.system(size: 12, weight: .black))
+                    .foregroundStyle(Color.white.opacity(0.70))
                     .textCase(.uppercase)
-                    .tracking(0.9)
+                    .tracking(1.3)
 
                 TextField("32-character Client ID", text: $viewModel.setupClientID)
                     .textFieldStyle(.plain)
@@ -612,11 +623,11 @@ struct SearchPanelView: View {
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Color.white.opacity(0.055))
+                            .fill(Color.cardFill.opacity(0.88))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(Color.white.opacity(0.075), lineWidth: 1)
+                            .stroke(Color.white.opacity(0.085), lineWidth: 1)
                     )
             }
 
@@ -640,7 +651,7 @@ struct SearchPanelView: View {
                     .padding(.vertical, 12)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color.white.opacity(0.07))
+                            .fill(Color.white.opacity(0.065))
                     )
                     .foregroundStyle(Color.white.opacity(0.84))
                     .font(.system(size: 14, weight: .bold))
@@ -655,16 +666,20 @@ struct SearchPanelView: View {
         HStack(alignment: .top, spacing: 14) {
             Text(number)
                 .font(.system(size: 12, weight: .bold, design: .rounded))
-                .foregroundStyle(.white)
+                .foregroundStyle(Color.accentGreen)
                 .frame(width: 28, height: 28)
                 .background(
                     Circle()
-                        .fill(Color.white.opacity(0.08))
+                        .fill(Color.accentGreen.opacity(0.10))
+                )
+                .overlay(
+                    Circle()
+                        .stroke(Color.accentGreen.opacity(0.14), lineWidth: 1)
                 )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
-                    .font(.system(size: 14, weight: .bold))
+                    .font(.system(size: 14, weight: .black))
                     .foregroundStyle(Color.white.opacity(0.88))
 
                 Text(detail)
@@ -677,11 +692,11 @@ struct SearchPanelView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white.opacity(0.04))
+                .fill(Color.cardFill.opacity(0.74))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.white.opacity(0.05), lineWidth: 1)
+                .stroke(Color.white.opacity(0.065), lineWidth: 1)
         )
     }
 
@@ -694,8 +709,12 @@ struct SearchPanelView: View {
         VStack(alignment: .leading, spacing: 18) {
             ZStack {
                 Circle()
-                    .fill(tint.opacity(0.13))
+                    .fill(tint.opacity(0.105))
                     .frame(width: 56, height: 56)
+                    .overlay(
+                        Circle()
+                            .stroke(tint.opacity(0.13), lineWidth: 1)
+                    )
 
                 Image(systemName: icon)
                     .font(.system(size: 21, weight: .bold))
@@ -704,7 +723,7 @@ struct SearchPanelView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 Text(title)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .font(.system(size: 21, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
 
                 Text(subtitle)
@@ -718,8 +737,8 @@ struct SearchPanelView: View {
     }
 
     private var footer: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 9) {
                 if !isSetupState {
                     keyboardHint("Enter", "Play")
                     keyboardHint("Cmd+Enter", "Queue")
@@ -730,13 +749,13 @@ struct SearchPanelView: View {
             }
 
             if !isSetupState {
-                HStack(spacing: 10) {
+                HStack(spacing: 9) {
                     keyboardHint("Ctrl+Opt+P", "Pause")
                     keyboardHint("Ctrl+Opt+N", "Next")
                     keyboardHint("Ctrl+Opt+B", "Previous")
                 }
 
-                HStack(spacing: 10) {
+                HStack(spacing: 9) {
                     keyboardHint("Tab", "Next tab")
                     keyboardHint("Shift+Tab", "Previous tab")
                 }
@@ -866,7 +885,7 @@ struct SearchPanelView: View {
         Capsule(style: .continuous)
             .fill(
                 LinearGradient(
-                    colors: [Color.green.opacity(0.96), Color.cyan.opacity(0.78)],
+                    colors: [Color.accentGreen.opacity(0.95), Color.accentCyan.opacity(0.72)],
                     startPoint: .leading,
                     endPoint: .trailing
                 )
@@ -875,39 +894,48 @@ struct SearchPanelView: View {
 
     private var nowPlayingBackground: some View {
         RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(Color.white.opacity(0.045))
+            .fill(Color.cardFill.opacity(0.82))
             .overlay(
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.white.opacity(0.08), lineWidth: 1)
+                    .stroke(Color.white.opacity(0.085), lineWidth: 1)
             )
     }
 
     private func compactPill(_ text: String) -> some View {
         Text(text)
             .font(.system(size: 12, weight: .bold, design: .monospaced))
-            .foregroundStyle(Color.white.opacity(0.82))
+            .foregroundStyle(Color.white.opacity(0.74))
             .padding(.horizontal, 12)
             .padding(.vertical, 9)
             .background(
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.08))
+                    .fill(Color.white.opacity(0.065))
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(Color.white.opacity(0.07), lineWidth: 1)
             )
     }
 
     private func keyboardHint(_ key: String, _ label: String) -> some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 7) {
             Text(key)
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(.system(size: 10, weight: .black, design: .monospaced))
+                .foregroundStyle(Color.white.opacity(0.78))
                 .padding(.horizontal, 8)
                 .padding(.vertical, 5)
                 .background(
                     Capsule(style: .continuous)
-                        .fill(Color.white.opacity(0.07))
+                        .fill(Color.white.opacity(0.070))
+                )
+                .overlay(
+                    Capsule(style: .continuous)
+                        .stroke(Color.white.opacity(0.055), lineWidth: 1)
                 )
 
             Text(label)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.54))
+                .font(.system(size: 11, weight: .bold))
+                .foregroundStyle(Color.white.opacity(0.38))
         }
     }
 
@@ -930,7 +958,6 @@ private struct TrackListRow: View {
 
     var body: some View {
         HStack(spacing: 14) {
-            // Artwork with glow effect when selected
             ZStack {
                 AsyncImage(url: track.artworkURL) { image in
                     image
@@ -940,7 +967,7 @@ private struct TrackListRow: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(
                             LinearGradient(
-                                colors: [Color.white.opacity(0.08), Color.white.opacity(0.04)],
+                                colors: [Color.white.opacity(0.075), Color.white.opacity(0.035)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             )
@@ -954,18 +981,16 @@ private struct TrackListRow: View {
                 .frame(width: 52, height: 52)
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                // Selection ring
                 if isSelected {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.green.opacity(0.6), lineWidth: 2)
+                        .stroke(Color.accentGreen.opacity(0.62), lineWidth: 2)
                         .frame(width: 52, height: 52)
                 }
             }
 
-            // Track info
             VStack(alignment: .leading, spacing: 4) {
                 Text(track.name)
-                    .font(.system(size: 17, weight: .bold, design: .rounded))
+                    .font(.system(size: 17, weight: .black, design: .rounded))
                     .foregroundStyle(.white)
                     .lineLimit(1)
 
@@ -993,7 +1018,7 @@ private struct TrackListRow: View {
 
                         Text(metadata)
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color.green.opacity(0.62))
+                            .foregroundStyle(Color.accentGreen.opacity(0.56))
                             .lineLimit(1)
                     }
                 }
@@ -1001,20 +1026,18 @@ private struct TrackListRow: View {
 
             Spacer(minLength: 10)
 
-            // Duration badge
             if let duration = track.durationMs {
                 Text(formatDuration(duration))
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.45))
+                    .font(.system(size: 11, weight: .black, design: .monospaced))
+                    .foregroundStyle(Color.white.opacity(0.42))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color.white.opacity(0.06))
+                            .fill(Color.white.opacity(0.055))
                     )
             }
 
-            // Play indicator
             if isSelected {
                 Image(systemName: "play.fill")
                     .font(.system(size: 11, weight: .bold))
@@ -1025,7 +1048,7 @@ private struct TrackListRow: View {
                         Capsule(style: .continuous)
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.green.opacity(0.95), Color.cyan.opacity(0.85)],
+                                    colors: [Color.accentGreen.opacity(0.95), Color.accentCyan.opacity(0.72)],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -1034,16 +1057,16 @@ private struct TrackListRow: View {
             } else if isHovered {
                 Image(systemName: "play.fill")
                     .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.green.opacity(0.8))
+                    .foregroundStyle(Color.accentGreen.opacity(0.74))
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color.green.opacity(0.12))
+                            .fill(Color.accentGreen.opacity(0.10))
                     )
                     .overlay(
                         Capsule(style: .continuous)
-                            .stroke(Color.green.opacity(0.25), lineWidth: 1)
+                            .stroke(Color.accentGreen.opacity(0.20), lineWidth: 1)
                     )
             }
         }
@@ -1054,8 +1077,8 @@ private struct TrackListRow: View {
                 if isSelected {
                     LinearGradient(
                         colors: [
-                            Color.green.opacity(0.14),
-                            Color.cyan.opacity(0.08)
+                            Color.accentGreen.opacity(0.105),
+                            Color.accentCyan.opacity(0.050)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -1063,7 +1086,7 @@ private struct TrackListRow: View {
                 } else if isHovered {
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.06),
+                            Color.white.opacity(0.050),
                             Color.white.opacity(0.03)
                         ],
                         startPoint: .topLeading,
@@ -1072,7 +1095,7 @@ private struct TrackListRow: View {
                 } else {
                     LinearGradient(
                         colors: [
-                            Color.white.opacity(0.04),
+                            Color.white.opacity(0.033),
                             Color.white.opacity(0.025)
                         ],
                         startPoint: .topLeading,
@@ -1085,14 +1108,14 @@ private struct TrackListRow: View {
             RoundedRectangle(cornerRadius: 20, style: .continuous)
                 .stroke(
                     isSelected
-                    ? Color.green.opacity(0.30)
+                    ? Color.accentGreen.opacity(0.26)
                     : isHovered
-                        ? Color.white.opacity(0.08)
-                        : Color.white.opacity(0.04),
+                        ? Color.white.opacity(0.085)
+                        : Color.white.opacity(0.052),
                     lineWidth: 1
                 )
         )
-        .shadow(color: .black.opacity(isSelected ? 0.12 : 0.06), radius: isSelected ? 6 : 3, y: 2)
+        .shadow(color: .black.opacity(isSelected ? 0.16 : 0.05), radius: isSelected ? 9 : 3, y: 3)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovered = hovering
@@ -1106,6 +1129,39 @@ private struct TrackListRow: View {
         let seconds = totalSeconds % 60
         return String(format: "%d:%02d", minutes, seconds)
     }
+}
+
+private struct PanelGrid: View {
+    var body: some View {
+        Canvas { context, size in
+            var path = Path()
+            let step: CGFloat = 42
+
+            var x: CGFloat = 0
+            while x <= size.width {
+                path.move(to: CGPoint(x: x, y: 0))
+                path.addLine(to: CGPoint(x: x, y: size.height))
+                x += step
+            }
+
+            var y: CGFloat = 0
+            while y <= size.height {
+                path.move(to: CGPoint(x: 0, y: y))
+                path.addLine(to: CGPoint(x: size.width, y: y))
+                y += step
+            }
+
+            context.stroke(path, with: .color(Color.white.opacity(0.045)), lineWidth: 0.5)
+        }
+    }
+}
+
+private extension Color {
+    static let panelCanvas = Color(nsColor: NSColor(calibratedRed: 0.027, green: 0.043, blue: 0.067, alpha: 1.0))
+    static let panelSurface = Color(nsColor: NSColor(calibratedRed: 0.050, green: 0.064, blue: 0.086, alpha: 1.0))
+    static let cardFill = Color(nsColor: NSColor(calibratedRed: 0.066, green: 0.082, blue: 0.110, alpha: 1.0))
+    static let accentGreen = Color(nsColor: NSColor(calibratedRed: 0.337, green: 0.827, blue: 0.392, alpha: 1.0))
+    static let accentCyan = Color(nsColor: NSColor(calibratedRed: 0.392, green: 0.910, blue: 0.980, alpha: 1.0))
 }
 
 // MARK: - Loading Animation
