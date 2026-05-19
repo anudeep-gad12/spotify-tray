@@ -12,6 +12,7 @@ import {
   Search,
   Sparkles,
 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Badge } from "./components/ui/badge";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
@@ -70,8 +71,17 @@ function LogoMark() {
 }
 
 function HomebrewInstall({ compact = false }: { compact?: boolean }) {
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = window.setTimeout(() => setCopied(false), 1400);
+    return () => window.clearTimeout(timeout);
+  }, [copied]);
+
   const copyCommand = () => {
     void navigator.clipboard?.writeText(brewCommand);
+    setCopied(true);
   };
 
   return (
@@ -80,11 +90,15 @@ function HomebrewInstall({ compact = false }: { compact?: boolean }) {
       <button
         type="button"
         onClick={copyCommand}
-        className="group inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.035] px-5 py-3 font-mono text-sm font-bold text-white/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.055] sm:text-base"
+        className="group inline-flex max-w-full cursor-pointer items-center gap-3 rounded-full border border-white/10 bg-white/[0.035] px-5 py-3 font-mono text-sm font-bold text-white/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.055] sm:text-base"
         aria-label="Copy Homebrew install command"
       >
         <span className="truncate">{brewCommand}</span>
-        <Copy size={18} className="shrink-0 text-white/42 transition group-hover:text-white/75" />
+        {copied ? (
+          <Check size={18} className="shrink-0 text-accent transition" />
+        ) : (
+          <Copy size={18} className="shrink-0 text-white/42 transition group-hover:text-white/75" />
+        )}
       </button>
     </div>
   );
