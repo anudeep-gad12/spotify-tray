@@ -3,6 +3,7 @@ import {
   Check,
   CirclePlay,
   Command,
+  Copy,
   Download,
   Github,
   Keyboard,
@@ -19,6 +20,7 @@ const releaseUrl = "https://github.com/anudeep-gad12/spotify-tray/releases/lates
 const repoUrl = "https://github.com/anudeep-gad12/spotify-tray";
 const readmeUrl = "https://github.com/anudeep-gad12/spotify-tray#readme";
 const redirectUri = "http://127.0.0.1:43821/callback";
+const brewCommand = "brew install --cask anudeep-gad12/tap/spotify-tray";
 
 const features = [
   {
@@ -63,6 +65,27 @@ function LogoMark() {
   return (
     <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.055] text-accent shadow-glow">
       <Music4 size={17} />
+    </div>
+  );
+}
+
+function HomebrewInstall({ compact = false }: { compact?: boolean }) {
+  const copyCommand = () => {
+    void navigator.clipboard?.writeText(brewCommand);
+  };
+
+  return (
+    <div className={`flex flex-col items-center justify-center gap-3 text-white/40 ${compact ? "mt-6" : "mt-7"} sm:flex-row`}>
+      <span className="text-base font-bold sm:text-lg">or install with Homebrew</span>
+      <button
+        type="button"
+        onClick={copyCommand}
+        className="group inline-flex max-w-full items-center gap-3 rounded-full border border-white/10 bg-white/[0.035] px-5 py-3 font-mono text-sm font-bold text-white/76 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] transition hover:border-white/18 hover:bg-white/[0.055] sm:text-base"
+        aria-label="Copy Homebrew install command"
+      >
+        <span className="truncate">{brewCommand}</span>
+        <Copy size={18} className="shrink-0 text-white/42 transition group-hover:text-white/75" />
+      </button>
     </div>
   );
 }
@@ -254,6 +277,7 @@ export default function App() {
                 Star on GitHub
               </Button>
             </div>
+            <HomebrewInstall />
           </section>
 
           <ProductMock />
@@ -299,6 +323,9 @@ export default function App() {
               <p className="mt-8 max-w-xl text-lg font-semibold leading-8 text-white/50">
                 SpotifyTray is unsigned for now. The setup is simple: install the app, approve macOS once, add your Spotify Client ID, and keep credentials local.
               </p>
+              <div className="flex justify-start">
+                <HomebrewInstall compact />
+              </div>
 
               <Badge className="mt-8 bg-white/[0.055] text-white/62">If macOS blocks it</Badge>
 
@@ -338,6 +365,7 @@ export default function App() {
                 <ArrowRight size={17} />
               </Button>
             </div>
+            <HomebrewInstall compact />
           </section>
         </main>
 
