@@ -3,7 +3,7 @@
 SpotifyTray is a tiny macOS menu bar app for Spotify. Press a hotkey, search tracks in a polished popup, then play or queue them without switching to the Spotify window.
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fa8c42c8-dbd3-477b-80a9-3e5b07c16d78" alt="SpotifyTray demo" width="840" />
+  <img src="https://github.com/anudeep-gad12/spotify-tray/releases/download/v0.1.8/spotifytray-demo.gif" alt="SpotifyTray demo" width="840" />
 </p>
 
 Features:
