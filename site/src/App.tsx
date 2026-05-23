@@ -386,7 +386,16 @@ export default function App() {
         <footer className="mx-auto flex max-w-6xl flex-col gap-5 border-t border-white/[0.06] py-8 text-sm font-semibold text-white/36 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <LogoMark />
-            <span>© 2026 SpotifyTray · MIT</span>
+            <div className="space-y-1">
+              <div>© 2026 SpotifyTray · MIT</div>
+              <div>
+                Built by{" "}
+                <a href="https://anudeep.cc" target="_blank" rel="noreferrer" className="text-white/55 underline decoration-white/15 underline-offset-4 transition hover:text-white">
+                  Anudeep
+                </a>{" "}
+                for people who Cmd+Tab too much.
+              </div>
+            </div>
           </div>
           <div className="flex gap-6">
             <a href={repoUrl} target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a>
