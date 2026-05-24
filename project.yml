@@ -28,6 +28,7 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
     sources:
       - path: Sources
+      - path: SpotifyTray/Assets.xcassets
     dependencies: []
   SpotifyTrayTests:
     type: bundle.unit-test
