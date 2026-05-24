@@ -10,6 +10,7 @@ enum SpotifyAuthError: LocalizedError {
     case cancelled
     case timedOut
     case invalidTokenResponse
+    case tokenRequestFailed(statusCode: Int)
 
     var errorDescription: String? {
         switch self {
@@ -25,6 +26,8 @@ enum SpotifyAuthError: LocalizedError {
             return "Spotify login timed out before returning to \(SpotifyAuthManager.redirectURIDescription)."
         case .invalidTokenResponse:
             return "Spotify token response was invalid."
+        case .tokenRequestFailed(let statusCode):
+            return "Spotify token request failed with HTTP \(statusCode)."
         }
     }
 }
@@ -76,52 +79,61 @@ final class SpotifyAuthManager: NSObject, @unchecked Sendable {
 
     func ensureAuthorized(forceReauthentication: Bool = false) async throws -> SpotifyToken {
         AppLogger.shared.log("ensureAuthorized force=\(forceReauthentication)", category: "auth")
-        if let existingTask = await MainActor.run(body: { authorizationTask }) {
-            AppLogger.shared.log("awaiting in-flight authorization task", category: "auth")
-            return try await existingTask.value
-        }
-
         if !forceReauthentication, let token = try keychain.loadToken(), !token.isExpired {
             AppLogger.shared.log("using cached access token", category: "auth")
             return token
         }
 
-        if !forceReauthentication, let token = try keychain.loadToken(), !token.refreshToken.isEmpty {
-            do {
-                AppLogger.shared.log("refreshing access token", category: "auth")
-                let refreshed = try await refreshToken(token.refreshToken)
-                try keychain.save(token: refreshed)
-                AppLogger.shared.log("token refresh succeeded", category: "auth")
-                return refreshed
-            } catch {
-                AppLogger.shared.log("token refresh failed: \(error.localizedDescription)", category: "auth")
-                try? keychain.deleteToken()
-            }
-        }
-
-        let task = Task<SpotifyToken, Error> {
-            await MainActor.run {
-                self.isInteractiveAuthInProgress = true
+        let task = await MainActor.run {
+            if let authorizationTask {
+                AppLogger.shared.log("awaiting in-flight authorization task", category: "auth")
+                return authorizationTask
             }
 
-            defer {
-                Task { @MainActor in
-                    self.isInteractiveAuthInProgress = false
+            let task = Task<SpotifyToken, Error> {
+                if !forceReauthentication, let token = try self.keychain.loadToken(), !token.isExpired {
+                    AppLogger.shared.log("using cached access token after waiting", category: "auth")
+                    return token
                 }
+
+                if !forceReauthentication, let token = try self.keychain.loadToken(), !token.refreshToken.isEmpty {
+                    do {
+                        AppLogger.shared.log("refreshing access token", category: "auth")
+                        let refreshed = try await self.refreshToken(token.refreshToken)
+                        try self.keychain.save(token: refreshed)
+                        AppLogger.shared.log("token refresh succeeded", category: "auth")
+                        return refreshed
+                    } catch {
+                        AppLogger.shared.log("token refresh failed: \(error.localizedDescription)", category: "auth")
+                        guard self.shouldDiscardRefreshToken(after: error) else {
+                            throw error
+                        }
+                        try? self.keychain.deleteToken()
+                    }
+                }
+
+                await MainActor.run {
+                    self.isInteractiveAuthInProgress = true
+                }
+
+                defer {
+                    Task { @MainActor in
+                        self.isInteractiveAuthInProgress = false
+                    }
+                }
+
+                AppLogger.shared.log("starting interactive auth", category: "auth")
+                let newToken = try await self.authenticateInteractively()
+                try self.keychain.save(token: newToken)
+                AppLogger.shared.log("interactive auth succeeded and token saved", category: "auth")
+                await MainActor.run {
+                    self.onAuthorizationSucceeded?()
+                }
+                return newToken
             }
 
-            AppLogger.shared.log("starting interactive auth", category: "auth")
-            let newToken = try await self.authenticateInteractively()
-            try self.keychain.save(token: newToken)
-            AppLogger.shared.log("interactive auth succeeded and token saved", category: "auth")
-            await MainActor.run {
-                self.onAuthorizationSucceeded?()
-            }
-            return newToken
-        }
-
-        await MainActor.run {
             authorizationTask = task
+            return task
         }
 
         do {
@@ -260,6 +272,13 @@ final class SpotifyAuthManager: NSObject, @unchecked Sendable {
         )
     }
 
+    private func shouldDiscardRefreshToken(after error: Error) -> Bool {
+        guard case SpotifyAuthError.tokenRequestFailed(let statusCode) = error else {
+            return false
+        }
+        return statusCode == 400 || statusCode == 401
+    }
+
     private func sendTokenRequest(body: [URLQueryItem]) async throws -> TokenResponse {
         var components = URLComponents()
         components.queryItems = body
@@ -273,10 +292,11 @@ final class SpotifyAuthManager: NSObject, @unchecked Sendable {
         guard let httpResponse = response as? HTTPURLResponse, 200..<300 ~= httpResponse.statusCode else {
             if let httpResponse = response as? HTTPURLResponse {
                 AppLogger.shared.log("token request failed status=\(httpResponse.statusCode)", category: "auth")
+                throw SpotifyAuthError.tokenRequestFailed(statusCode: httpResponse.statusCode)
             } else {
                 AppLogger.shared.log("token request failed invalid response", category: "auth")
+                throw SpotifyAuthError.invalidTokenResponse
             }
-            throw SpotifyAuthError.invalidTokenResponse
         }
         return try JSONDecoder().decode(TokenResponse.self, from: data)
     }
