@@ -271,10 +271,10 @@ export default function App() {
 
         <main id="top">
           <section className="mx-auto flex max-w-5xl flex-col items-center pb-16 pt-24 text-center sm:pt-32 lg:pb-24">
-            <Badge className="mb-8 bg-cyanSoft/35 text-cyan-200">
-              <Sparkles size={13} />
-              SPOTIFY-TRAY
-            </Badge>
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.035] px-5 py-2.5 text-sm font-black tracking-tight text-white/62 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:text-base">
+              <Sparkles size={14} className="text-cyan-200" />
+              No more Cmd+Tab just to change a song.
+            </div>
             <h1 className="max-w-5xl text-balance text-[clamp(4rem,12vw,9.5rem)] font-black leading-[0.84] tracking-[-0.09em] text-white">
               A Spotlight for Spotify on macOS.
             </h1>
