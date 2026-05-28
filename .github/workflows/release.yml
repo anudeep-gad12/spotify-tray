@@ -238,41 +238,53 @@ jobs:
 
       - name: Generate appcast.xml
         if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.version.outputs.marketing_version }}
+          BUILD_NUMBER: ${{ steps.version.outputs.build_number }}
+          ED_SIGNATURE: ${{ steps.sign_update.outputs.ed_signature }}
+          LENGTH: ${{ steps.sign_update.outputs.length }}
+          DOWNLOAD_URL: https://github.com/anudeep-gad12/spotify-tray/releases/download/${{ github.ref_name }}/SpotifyTray.app.zip
         run: |
           set -euo pipefail
-          VERSION="${{ steps.version.outputs.marketing_version }}"
-          BUILD_NUMBER="${{ steps.version.outputs.build_number }}"
-          ED_SIGNATURE="${{ steps.sign_update.outputs.ed_signature }}"
-          LENGTH="${{ steps.sign_update.outputs.length }}"
-          PUB_DATE="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
-          DOWNLOAD_URL="https://github.com/anudeep-gad12/spotify-tray/releases/download/${GITHUB_REF_NAME}/SpotifyTray.app.zip"
+          export PUB_DATE="$(date -u +"%a, %d %b %Y %H:%M:%S +0000")"
+          python3 <<'PY'
+          import os
+          from pathlib import Path
 
-          cat > dist/appcast.xml <<EOF
-<?xml version="1.0" standalone="yes"?>
-<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-  <channel>
-    <title>SpotifyTray</title>
-    <link>https://github.com/anudeep-gad12/spotify-tray</link>
-    <description>SpotifyTray release feed</description>
-    <language>en</language>
-    <item>
-      <title>v${VERSION}</title>
-      <pubDate>${PUB_DATE}</pubDate>
-      <sparkle:version>${BUILD_NUMBER}</sparkle:version>
-      <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-      <enclosure
-        url="${DOWNLOAD_URL}"
-        sparkle:edSignature="${ED_SIGNATURE}"
-        length="${LENGTH}"
-        type="application/octet-stream" />
-    </item>
-  </channel>
-</rss>
-EOF
+          version = os.environ["VERSION"]
+          build_number = os.environ["BUILD_NUMBER"]
+          ed_signature = os.environ["ED_SIGNATURE"]
+          length = os.environ["LENGTH"]
+          download_url = os.environ["DOWNLOAD_URL"]
+          pub_date = os.environ["PUB_DATE"]
 
-          echo "Generated appcast.xml:"
-          cat dist/appcast.xml
+          appcast = (
+              '<?xml version="1.0" standalone="yes"?>\n'
+              '<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">\n'
+              '  <channel>\n'
+              '    <title>SpotifyTray</title>\n'
+              '    <link>https://github.com/anudeep-gad12/spotify-tray</link>\n'
+              '    <description>SpotifyTray release feed</description>\n'
+              '    <language>en</language>\n'
+              '    <item>\n'
+              f'      <title>v{version}</title>\n'
+              f'      <pubDate>{pub_date}</pubDate>\n'
+              f'      <sparkle:version>{build_number}</sparkle:version>\n'
+              f'      <sparkle:shortVersionString>{version}</sparkle:shortVersionString>\n'
+              '      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>\n'
+              '      <enclosure\n'
+              f'        url="{download_url}"\n'
+              f'        sparkle:edSignature="{ed_signature}"\n'
+              f'        length="{length}"\n'
+              '        type="application/octet-stream" />\n'
+              '    </item>\n'
+              '  </channel>\n'
+              '</rss>\n'
+          )
+
+          Path("dist/appcast.xml").write_text(appcast)
+          print(appcast)
+          PY
 
       - name: Clean up keychain
         if: always()
