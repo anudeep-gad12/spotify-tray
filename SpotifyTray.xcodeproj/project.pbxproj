@@ -10,6 +10,7 @@
 		12CDF142FE09D806B4DCC099 /* SearchViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39F029AC6DF1E810D43F72ED /* SearchViewModelTests.swift */; };
 		16FA4CBA85F384013D462691 /* SpotifyAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 787AD45A5CA461E62461ADEB /* SpotifyAPIClient.swift */; };
 		190515C3A633F2083DCDDB61 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EF63D0AFBB648FD1A9A4DA /* KeychainStore.swift */; };
+		1DDE55C440A17EFCA4DED66D /* ApplicationInstallLocation.swift in Sources */ = {isa = PBXBuildFile; fileRef = D069D880FDCF98D225839715 /* ApplicationInstallLocation.swift */; };
 		2C87FF2DB9E7E03B0174BD23 /* SearchViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96869FF96C5499B0FA42AEEB /* SearchViewModel.swift */; };
 		2F8EB7F781D9706D8AB58661 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD73A4C6995F36F6493BACD /* HotKeyManager.swift */; };
 		3B37C3522D9F37A3AD126B69 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6F2C9F27337DD21139BF4B /* AppLogger.swift */; };
@@ -20,6 +21,7 @@
 		761224B0A70CFF59137D1FAC /* ClientConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E1B1F4859670FFE7B51D53 /* ClientConfigurationStore.swift */; };
 		7DA2304CAF305F3255FBA5CC /* StatusBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 738A0057A8A7DA7D01EC72C5 /* StatusBarController.swift */; };
 		8248961346F1AF80390C66DF /* AppConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 091385C89FFB15A72B902C30 /* AppConfiguration.swift */; };
+		871DF3C3E62280E53C11C360 /* ApplicationInstallCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98840CD06E8D804C98FFBDB4 /* ApplicationInstallCoordinator.swift */; };
 		9226DB52A4A136D75D4C5436 /* SearchPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD1AEF4209B07B9C6E6DD430 /* SearchPanelView.swift */; };
 		9D8C690C46E232B757E3CA62 /* SpotifyModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E9E1A010DE4009B83ABF0F4 /* SpotifyModels.swift */; };
 		9EEC254F40213FE846297300 /* ClientConfigurationStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9F2BA20F6335E8D5373CCB18 /* ClientConfigurationStoreTests.swift */; };
@@ -66,11 +68,13 @@
 		787AD45A5CA461E62461ADEB /* SpotifyAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyAPIClient.swift; sourceTree = "<group>"; };
 		893A52F80D221129C1EF99FD /* PlaybackCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlaybackCoordinator.swift; sourceTree = "<group>"; };
 		96869FF96C5499B0FA42AEEB /* SearchViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchViewModel.swift; sourceTree = "<group>"; };
+		98840CD06E8D804C98FFBDB4 /* ApplicationInstallCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationInstallCoordinator.swift; sourceTree = "<group>"; };
 		9F2BA20F6335E8D5373CCB18 /* ClientConfigurationStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClientConfigurationStoreTests.swift; sourceTree = "<group>"; };
 		AAB1BDE29AF2896F7C83E935 /* SpotifyModelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpotifyModelsTests.swift; sourceTree = "<group>"; };
 		ABD73A4C6995F36F6493BACD /* HotKeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotKeyManager.swift; sourceTree = "<group>"; };
 		AD1AEF4209B07B9C6E6DD430 /* SearchPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchPanelView.swift; sourceTree = "<group>"; };
 		CD9EB6C449AFBE35A03A691E /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		D069D880FDCF98D225839715 /* ApplicationInstallLocation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationInstallLocation.swift; sourceTree = "<group>"; };
 		D1E9AFBCEE091300076462FB /* PKCETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PKCETests.swift; sourceTree = "<group>"; };
 		DA84684339F7059D2A649A5E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		EC806032504B7C8866E92F34 /* SpotifyTray.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpotifyTray.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -104,6 +108,8 @@
 				091385C89FFB15A72B902C30 /* AppConfiguration.swift */,
 				CD9EB6C449AFBE35A03A691E /* AppDelegate.swift */,
 				52ED2795C8572894D9023914 /* AppEnvironment.swift */,
+				98840CD06E8D804C98FFBDB4 /* ApplicationInstallCoordinator.swift */,
+				D069D880FDCF98D225839715 /* ApplicationInstallLocation.swift */,
 				5FC0702457464DEADE582A6D /* SpotifyTrayApp.swift */,
 			);
 			path = App;
@@ -338,6 +344,8 @@
 				40E3D81CAEC80ABCD7984A1D /* AppEnvironment.swift in Sources */,
 				3B37C3522D9F37A3AD126B69 /* AppLogger.swift in Sources */,
 				E67CA6246282573277F07994 /* AppleScriptTransportController.swift in Sources */,
+				871DF3C3E62280E53C11C360 /* ApplicationInstallCoordinator.swift in Sources */,
+				1DDE55C440A17EFCA4DED66D /* ApplicationInstallLocation.swift in Sources */,
 				761224B0A70CFF59137D1FAC /* ClientConfigurationStore.swift in Sources */,
 				2F8EB7F781D9706D8AB58661 /* HotKeyManager.swift in Sources */,
 				190515C3A633F2083DCDDB61 /* KeychainStore.swift in Sources */,

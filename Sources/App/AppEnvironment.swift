@@ -80,6 +80,16 @@ final class AppEnvironment: ObservableObject {
 
     func configureLaunchAtLogin() {
         AppLogger.shared.log("configureLaunchAtLogin", category: "app")
+
+        if ApplicationInstallLocation.needsInstallToApplicationsFolder {
+            if launchAtLoginManager.currentStatus {
+                try? launchAtLoginManager.setEnabled(false)
+            }
+            launchAtLoginEnabled = false
+            statusBarController?.refreshMenu()
+            return
+        }
+
         launchAtLoginEnabled = launchAtLoginManager.currentStatus
         if !launchAtLoginEnabled {
             do {
@@ -218,6 +228,11 @@ final class AppEnvironment: ObservableObject {
     }
 
     func checkForUpdates() {
+        guard !ApplicationInstallLocation.needsInstallToApplicationsFolder else {
+            ApplicationInstallCoordinator().promptToInstallInApplicationsFolderIfNeeded()
+            return
+        }
+
         guard let updaterController else {
             AppLogger.shared.log("checkForUpdates requested but updater not configured", category: "app")
             return
@@ -227,6 +242,15 @@ final class AppEnvironment: ObservableObject {
     }
 
     func toggleLaunchAtLogin() {
+        guard !ApplicationInstallLocation.needsInstallToApplicationsFolder else {
+            searchViewModel.setInlineMessage(
+                "Move SpotifyTray to Applications before enabling Launch at Login.",
+                isError: false
+            )
+            ApplicationInstallCoordinator().promptToInstallInApplicationsFolderIfNeeded()
+            return
+        }
+
         do {
             try launchAtLoginManager.setEnabled(!launchAtLoginEnabled)
             launchAtLoginEnabled = launchAtLoginManager.currentStatus

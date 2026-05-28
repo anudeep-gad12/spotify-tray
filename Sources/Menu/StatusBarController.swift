@@ -11,10 +11,25 @@ final class StatusBarController: NSObject {
     }
 
     func install() {
-        if let button = statusItem.button {
-            button.image = NSImage(systemSymbolName: "music.note.list", accessibilityDescription: "SpotifyTray")
-            button.imagePosition = .imageOnly
+        guard let button = statusItem.button else {
+            return
         }
+
+        if let symbolImage = NSImage(
+            systemSymbolName: "music.note.list",
+            accessibilityDescription: "SpotifyTray"
+        ) {
+            let configuration = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
+            let image = symbolImage.withSymbolConfiguration(configuration) ?? symbolImage
+            image.isTemplate = true
+            button.image = image
+            button.imagePosition = .imageOnly
+            button.title = ""
+        } else {
+            button.image = nil
+            button.title = "♪"
+        }
+
         refreshMenu()
     }
 
