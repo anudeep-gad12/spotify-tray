@@ -7,14 +7,14 @@
     <language>en</language>
     <item>
       <title>v0.2.0-rc10</title>
-      <pubDate>Thu, 28 May 2026 17:01:05 +0000</pubDate>
+      <pubDate>Thu, 28 May 2026 17:01:12 +0000</pubDate>
       <sparkle:version>44</sparkle:version>
       <sparkle:shortVersionString>0.2.0-rc10</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <enclosure
         url="https://github.com/anudeep-gad12/spotify-tray/releases/download/v0.2.0-rc10/SpotifyTray.app.zip"
-        sparkle:edSignature="L0n/yhfi825/bGnEhgLv/MtRpMzFx4zmfvBvImp6MRMvcWokTDqHyd5tgmjcOQwULe1+7G90jgEJZXkcIWkwCg=="
-        length="1665529"
+        sparkle:edSignature="Ea6UBZaYnE+OBI7Adzgey/LVykqNNzq6oGHkq8xj6UEt2r/ALfeQDTLDty6eeKbREBhuDlfM3nRWltS+8tz3Ag=="
+        length="1665546"
         type="application/octet-stream" />
     </item>
   </channel>
