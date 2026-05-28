@@ -101,6 +101,26 @@ jobs:
             CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
             build
 
+      - name: Re-sign Sparkle bundled helpers
+        run: |
+          set -euo pipefail
+          APP=".build/DerivedData/Build/Products/Release/SpotifyTray.app"
+          SPARKLE_FW="$APP/Contents/Frameworks/Sparkle.framework"
+
+          if [ ! -d "$SPARKLE_FW" ]; then
+            echo "::error::Sparkle.framework not found at $SPARKLE_FW"
+            exit 1
+          fi
+
+          SIGN=(codesign --force --options runtime --timestamp --sign "Developer ID Application")
+
+          "${SIGN[@]}" "$SPARKLE_FW/Versions/B/XPCServices/Downloader.xpc"
+          "${SIGN[@]}" "$SPARKLE_FW/Versions/B/XPCServices/Installer.xpc"
+          "${SIGN[@]}" "$SPARKLE_FW/Versions/B/Updater.app"
+          "${SIGN[@]}" "$SPARKLE_FW/Versions/B/Autoupdate"
+          "${SIGN[@]}" "$SPARKLE_FW"
+          "${SIGN[@]}" "$APP"
+
       - name: Verify signature
         run: |
           set -euo pipefail
