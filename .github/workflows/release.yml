@@ -201,7 +201,7 @@ jobs:
           SIGN_UPDATE="$RUNNER_TEMP/sparkle/bin/sign_update"
           ZIP_PATH="dist/SpotifyTray.app.zip"
 
-          SIGNATURE_LINE="$("$SIGN_UPDATE" -s "$SPARKLE_ED_PRIVATE_KEY" "$ZIP_PATH")"
+          SIGNATURE_LINE="$(printf '%s' "$SPARKLE_ED_PRIVATE_KEY" | "$SIGN_UPDATE" --ed-key-file - "$ZIP_PATH")"
           echo "sign_update output: $SIGNATURE_LINE"
 
           ED_SIGNATURE="$(printf '%s' "$SIGNATURE_LINE" | sed -nE 's/.*sparkle:edSignature="([^"]+)".*/\1/p')"
