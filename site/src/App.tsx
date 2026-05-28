@@ -16,10 +16,9 @@ import { Badge } from "./components/ui/badge";
 import { Button } from "./components/ui/button";
 import { Card } from "./components/ui/card";
 
-const releaseUrl = "https://github.com/anudeep-gad12/spotify-tray/releases/latest";
+const downloadUrl = "https://github.com/anudeep-gad12/spotify-tray/releases/latest/download/SpotifyTray.dmg";
 const repoUrl = "https://github.com/anudeep-gad12/spotify-tray";
 const readmeUrl = "https://github.com/anudeep-gad12/spotify-tray#readme";
-const redirectUri = "http://127.0.0.1:43821/callback";
 const brewCommand = "brew install --cask anudeep-gad12/tap/spotify-tray";
 
 const features = [
@@ -43,13 +42,6 @@ const features = [
     title: "Global controls",
     body: "Play, pause, next, and previous from anywhere on your Mac with compact shortcuts.",
   },
-];
-
-const installSteps = [
-  "Download SpotifyTray.app.zip from the latest release.",
-  "Unzip it and move SpotifyTray.app into ~/Applications.",
-  "Create a Spotify Developer app and add the exact redirect URI.",
-  "Paste only the Client ID, sign in once, and press ⌘⇧Space.",
 ];
 
 const shortcuts = [
@@ -217,28 +209,6 @@ function HotkeyPanel() {
   );
 }
 
-function TerminalCard() {
-  return (
-    <Card className="overflow-hidden p-0">
-      <div className="flex items-center justify-between border-b border-white/8 px-5 py-4">
-        <div className="flex items-center gap-2">
-          <span className="h-3 w-3 rounded-full bg-[#ff6b6b]" />
-          <span className="h-3 w-3 rounded-full bg-[#ffd166]" />
-          <span className="h-3 w-3 rounded-full bg-[#8ce99a]" />
-        </div>
-        <div className="font-mono text-xs text-white/35">~/Applications</div>
-      </div>
-      <pre className="overflow-x-auto px-5 py-5 text-sm leading-8 text-white/76 sm:text-base">
-        <code>{`$ unzip SpotifyTray.app.zip
-$ mv SpotifyTray.app ~/Applications/
-$ xattr -dr com.apple.quarantine ~/Applications/SpotifyTray.app
-$ open ~/Applications/SpotifyTray.app
-✓ Spotify setup: ${redirectUri}`}</code>
-      </pre>
-    </Card>
-  );
-}
-
 export default function App() {
   return (
     <div className="min-h-screen overflow-hidden bg-canvas text-text">
@@ -253,11 +223,10 @@ export default function App() {
           </a>
           <nav className="hidden items-center gap-8 text-sm font-bold text-white/48 md:flex">
             <a href="#features" className="transition hover:text-white">Features</a>
-            <a href="#install" className="transition hover:text-white">Install</a>
             <a href={repoUrl} target="_blank" rel="noreferrer" className="transition hover:text-white">GitHub</a>
-            <a href={releaseUrl} target="_blank" rel="noreferrer" className="rounded-full bg-white px-5 py-2.5 text-black transition hover:scale-105">Download</a>
+            <a href={downloadUrl} download="SpotifyTray.dmg" className="rounded-full bg-white px-5 py-2.5 text-black transition hover:scale-105">Download</a>
           </nav>
-          <a href={releaseUrl} target="_blank" rel="noreferrer" className="rounded-full bg-white px-4 py-2 text-sm font-black text-black md:hidden">Download</a>
+          <a href={downloadUrl} download="SpotifyTray.dmg" className="rounded-full bg-white px-4 py-2 text-sm font-black text-black md:hidden">Download</a>
         </header>
 
         <main id="top">
@@ -273,7 +242,7 @@ export default function App() {
               Search, play, queue, and control Spotify from a fast menu bar popup without switching spaces or touching the Spotify window.
             </p>
             <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <Button as="a" href={releaseUrl} target="_blank" rel="noreferrer">
+              <Button as="a" href={downloadUrl} download="SpotifyTray.dmg">
                 <Download size={17} />
                 Download for macOS
               </Button>
@@ -318,41 +287,6 @@ export default function App() {
             <HotkeyPanel />
           </section>
 
-          <section id="install" className="mx-auto grid max-w-6xl items-center gap-10 py-16 lg:grid-cols-[0.95fr_1.05fr] lg:py-24">
-            <TerminalCard />
-            <div>
-              <Badge className="mb-6">INSTALL</Badge>
-              <h2 className="max-w-xl text-balance text-[clamp(3.25rem,7vw,6.5rem)] font-black leading-[0.88] tracking-[-0.08em] text-white">
-                Download, clear quarantine, open.
-              </h2>
-              <p className="mt-8 max-w-xl text-lg font-semibold leading-8 text-white/50">
-                SpotifyTray is unsigned for now. The setup is simple: install the app, approve macOS once, add your Spotify Client ID, and keep credentials local.
-              </p>
-              <div className="flex justify-start">
-                <HomebrewInstall compact />
-              </div>
-
-              <Badge className="mt-8 bg-white/[0.055] text-white/62">If macOS blocks it</Badge>
-
-              <div className="mt-8 grid gap-3">
-                {installSteps.map((step, index) => (
-                  <div key={step} className="flex gap-4 rounded-2xl border border-white/8 bg-white/[0.025] p-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/8 text-sm font-black text-white/75">{index + 1}</div>
-                    <p className="font-semibold leading-7 text-white/58">{step}</p>
-                  </div>
-                ))}
-              </div>
-
-              <p className="mt-6 text-sm leading-6 text-white/42">
-                Exact redirect URI: <code className="rounded bg-white/8 px-2 py-1 font-mono text-white/70">{redirectUri}</code>. Need the full Spotify setup?{" "}
-                <a href={readmeUrl} target="_blank" rel="noreferrer" className="font-bold text-white/75 underline decoration-white/20 underline-offset-4 hover:text-white">
-                  Read the README
-                </a>
-                .
-              </p>
-            </div>
-          </section>
-
           <section className="mx-auto max-w-4xl py-24 text-center">
             <h2 className="text-balance text-[clamp(3rem,7vw,6rem)] font-black leading-[0.88] tracking-[-0.08em] text-white">
               Give Spotify a command bar.
@@ -361,7 +295,7 @@ export default function App() {
               Install SpotifyTray, paste your Client ID, and search your music without breaking focus.
             </p>
             <div className="mt-9 flex flex-col justify-center gap-3 sm:flex-row">
-              <Button as="a" href={releaseUrl} target="_blank" rel="noreferrer">
+              <Button as="a" href={downloadUrl} download="SpotifyTray.dmg">
                 <Download size={17} />
                 Download for macOS
               </Button>
@@ -371,6 +305,18 @@ export default function App() {
               </Button>
             </div>
             <HomebrewInstall compact />
+            <p className="mt-6 text-sm font-semibold text-white/42">
+              Need the full Spotify setup?{" "}
+              <a
+                href={readmeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-bold text-white/75 underline decoration-white/20 underline-offset-4 transition hover:text-white"
+              >
+                Read the README
+              </a>
+              .
+            </p>
           </section>
         </main>
 
@@ -390,7 +336,7 @@ export default function App() {
           </div>
           <div className="flex gap-6">
             <a href={repoUrl} target="_blank" rel="noreferrer" className="hover:text-white">GitHub</a>
-            <a href={releaseUrl} target="_blank" rel="noreferrer" className="hover:text-white">Download</a>
+            <a href={downloadUrl} download="SpotifyTray.dmg" className="hover:text-white">Download</a>
           </div>
         </footer>
       </div>
