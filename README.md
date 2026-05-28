@@ -25,7 +25,7 @@ Requirements:
 
 ## Install
 
-Download `SpotifyTray.app.zip` from [Releases](https://github.com/anudeep-gad12/spotify-tray/releases/latest), unzip it, drag `SpotifyTray.app` into **Applications**, and open it.
+Download `SpotifyTray.dmg` from [Releases](https://github.com/anudeep-gad12/spotify-tray/releases/latest), open it, and drag `SpotifyTray` into **Applications**. Then open SpotifyTray from Applications.
 
 Or with Homebrew:
 
@@ -35,7 +35,7 @@ brew install --cask anudeep-gad12/tap/spotify-tray
 
 ## Updates
 
-Use **Check for Updates…** in the menu bar. To install a downloaded `.zip` by hand, quit SpotifyTray first, then replace the app in **Applications**.
+After SpotifyTray is in **Applications**, use **Check for Updates…** in the menu bar.
 
 ## First-Time Spotify Setup
 

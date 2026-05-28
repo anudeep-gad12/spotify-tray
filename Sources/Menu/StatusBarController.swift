@@ -46,8 +46,10 @@ final class StatusBarController: NSObject {
             action: #selector(toggleLaunchAtLogin),
             state: environment.launchAtLoginEnabled ? .on : .off
         ))
-        menu.addItem(.separator())
-        menu.addItem(makeItem(title: "Check for Updates…", action: #selector(checkForUpdates)))
+        if environment.canUseSparkleUpdater {
+            menu.addItem(.separator())
+            menu.addItem(makeItem(title: "Check for Updates…", action: #selector(checkForUpdates)))
+        }
         menu.addItem(.separator())
         menu.addItem(makeItem(title: "Quit SpotifyTray", action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu

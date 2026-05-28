@@ -15,6 +15,10 @@ final class AppEnvironment: ObservableObject {
     let searchViewModel: SearchViewModel
     var updaterController: SPUStandardUpdaterController?
 
+    var canUseSparkleUpdater: Bool {
+        ApplicationInstallLocation.canUseSparkleUpdater
+    }
+
     private weak var panelController: SearchPanelController?
     private weak var statusBarController: StatusBarController?
 
@@ -220,8 +224,7 @@ final class AppEnvironment: ObservableObject {
     }
 
     func checkForUpdates() {
-        guard let updaterController else {
-            AppLogger.shared.log("checkForUpdates requested but updater not configured", category: "app")
+        guard canUseSparkleUpdater, let updaterController else {
             return
         }
         AppLogger.shared.log("checkForUpdates requested", category: "app")
@@ -230,10 +233,6 @@ final class AppEnvironment: ObservableObject {
 
     func toggleLaunchAtLogin() {
         guard !ApplicationInstallLocation.needsInstallToApplicationsFolder else {
-            searchViewModel.setInlineMessage(
-                "Drag SpotifyTray into Applications, then open it from there.",
-                isError: false
-            )
             return
         }
 

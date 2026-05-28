@@ -25,4 +25,9 @@ enum ApplicationInstallLocation {
     static var needsInstallToApplicationsFolder: Bool {
         !isRunningFromApplicationsFolder || isAppTranslocated
     }
+
+    /// Sparkle only works when the app is installed under `/Applications`.
+    static var canUseSparkleUpdater: Bool {
+        !needsInstallToApplicationsFolder
+    }
 }
