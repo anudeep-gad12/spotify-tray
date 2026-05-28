@@ -9,7 +9,6 @@ import {
   Keyboard,
   Music4,
   ScanSearch,
-  Search,
   Sparkles,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -106,101 +105,93 @@ function HomebrewInstall({ compact = false }: { compact?: boolean }) {
 
 function ProductMock() {
   const results = [
-    ["Chances", "The Strokes", "Comedown Machine", "3:36", "active"],
-    ["80's Comedown Machine", "The Strokes", "Comedown Machine", "4:58", ""],
-    ["Ode To The Mets", "The Strokes", "The New Abnormal", "5:51", ""],
-    ["The Adults Are Talking", "The Strokes", "The New Abnormal", "5:09", "fade"],
+    ["Chances", "The Strokes", "3:36", "active"],
+    ["80's Comedown Machine", "The Strokes", "4:58", ""],
+    ["Ode To The Mets", "The Strokes", "5:51", ""],
+    ["Reptilia", "The Strokes", "3:39", ""],
+    ["Someday", "The Strokes", "3:07", "fade"],
   ];
 
   return (
-    <Card className="relative mx-auto max-w-5xl overflow-hidden rounded-[34px] p-1 shadow-hero sm:p-2">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_16%_18%,rgba(86,211,100,0.13),transparent_30%),radial-gradient(circle_at_85%_92%,rgba(168,85,247,0.14),transparent_38%)]" />
-      <div className="relative overflow-hidden rounded-[30px] border border-white/12 bg-[#11151b]/95 p-6 shadow-[0_28px_90px_rgba(0,0,0,0.55)] sm:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_0%_0%,rgba(86,211,100,0.11),transparent_35%),radial-gradient(circle_at_100%_100%,rgba(168,85,247,0.13),transparent_36%)]" />
-        <div className="relative">
-          <div className="mb-8 flex items-start justify-between gap-5">
-            <div>
-              <div className="text-3xl font-black tracking-[-0.05em] text-white sm:text-4xl">SpotifyTray</div>
-              <div className="mt-2 text-sm font-bold text-white/52 sm:text-base">
-                Search, play, and queue tracks on your Mac without touching the Spotify window.
-              </div>
-            </div>
-            <div className="flex shrink-0 flex-col items-end gap-3">
-              <Badge className="hidden bg-white/[0.07] text-white/70 sm:inline-flex">Cmd+Shift+Space</Badge>
-              <Badge className="bg-accent/16 text-accent">● Premium flow</Badge>
-            </div>
+    <Card className="relative mx-auto max-w-5xl overflow-hidden rounded-[30px] border-white/12 bg-[#050506] p-0 shadow-hero">
+      <div className="absolute inset-0 bg-hero-grid bg-[size:42px_42px] opacity-[0.08]" />
+      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.035),transparent_36%,rgba(0,0,0,0.22))]" />
+      <div className="relative p-8 sm:p-10">
+        <div className="mb-12 flex items-start justify-between gap-5">
+          <div>
+            <div className="text-2xl font-semibold tracking-[-0.035em] text-[#eee9dc]">SpotifyTray</div>
+            <div className="mt-1 text-sm font-medium text-[#8f8b80]">Search and queue without switching apps.</div>
           </div>
-
-          <div className="mb-5 flex items-center gap-4 rounded-[22px] border border-white/10 bg-white/[0.055] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] sm:px-6 sm:py-5">
-            <Search className="shrink-0 text-accent" size={24} />
-            <span className="min-w-0 flex-1 truncate text-2xl font-black tracking-[-0.04em] text-white">chances</span>
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/12 text-sm font-black text-black/70">×</span>
+          <div className="flex items-center gap-3 font-mono text-xs font-medium text-[#8f8b80]">
+            <span>Cmd+Shift+Space</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            <span>ready</span>
           </div>
+        </div>
 
-          <Card className="mb-5 flex items-center gap-4 rounded-[24px] bg-white/[0.045] p-4 sm:p-5">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-[conic-gradient(from_90deg,#67e8f9,#f472b6,#fef08a,#67e8f9)] p-1">
-              <div className="h-full w-full rounded-[14px] bg-[repeating-linear-gradient(45deg,#111_0_3px,#fff_3px_5px)] opacity-80" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="mb-1 text-[11px] font-black uppercase tracking-[0.2em] text-white/38">
-                Now playing <span className="text-accent">● Playing</span>
-              </div>
-              <div className="truncate text-xl font-black tracking-[-0.03em] text-white">Under Cover of Darkness</div>
-              <div className="truncate text-sm font-bold text-white/52">The Strokes</div>
-            </div>
-            <div className="hidden text-right text-xs font-black uppercase tracking-[0.18em] text-white/38 sm:block">
-              Device<br /><span className="normal-case tracking-normal text-white/62">Invincible</span>
-            </div>
-          </Card>
+        <div className="mb-8">
+          <div className="mb-2 text-sm font-medium text-[#6f6b63]">what do you want to hear?</div>
+          <div className="truncate text-5xl font-semibold tracking-[-0.06em] text-[#eee9dc]">chances_</div>
+          <div className="mt-4 h-px bg-white/10" />
+        </div>
 
-          <div className="relative overflow-hidden rounded-[24px] border border-white/8 bg-white/[0.035] p-4 sm:p-5">
-            <div className="mb-4 flex items-center justify-between text-xs font-black uppercase tracking-[0.18em] text-white/48">
-              <span>Results</span>
-              <span>8 live matches</span>
-            </div>
-            <div className="space-y-3">
-              {results.map(([track, artist, album, time, state], index) => (
-                <div
-                  key={track}
-                  className={`flex items-center gap-4 rounded-[20px] border px-4 py-3 ${
-                    state === "active"
-                      ? "border-accent/28 bg-accent/10 shadow-[0_0_0_1px_rgba(86,211,100,0.08)]"
-                      : state === "fade"
-                        ? "border-white/7 bg-white/[0.025] opacity-45"
-                        : "border-white/7 bg-white/[0.035]"
-                  }`}
-                >
-                  <div className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl text-xs font-black text-white/75 ${index < 2 ? "bg-gradient-to-br from-red-500 to-red-900" : "bg-[conic-gradient(from_90deg,#67e8f9,#facc15,#f472b6,#67e8f9)]"}`}>
-                    {index < 2 ? "RCA" : ""}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-lg font-black tracking-[-0.03em] text-white">{track}</div>
-                    <div className="truncate text-sm font-bold text-white/48">
-                      {artist} <span className="mx-1 text-white/24">•</span> {album}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <span className="rounded-full bg-white/8 px-3 py-1.5 text-xs font-black text-white/46">{time}</span>
-                    {state === "active" ? (
-                      <span className="flex h-9 w-9 items-center justify-center rounded-full bg-accent text-black">
-                        <CirclePlay size={20} fill="currentColor" />
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-[#19151f] to-transparent" />
-          </div>
+        <div className="mb-8 flex gap-9 text-sm font-medium lowercase">
+          <span className="text-[#eee9dc]">search</span>
+          <span className="text-[#6f6b63]">recent</span>
+          <span className="text-[#6f6b63]">queue</span>
+        </div>
 
-          <div className="mt-5 flex flex-wrap gap-3 text-xs font-black text-white/48">
-            {shortcuts.map(([key, label]) => (
-              <span key={`${key}-${label}`} className="inline-flex items-center gap-2">
-                <kbd className="rounded-full bg-white/10 px-3 py-1 font-mono text-white/82">{key}</kbd>
-                {label}
+        <div className="mb-4 flex items-center justify-between border-b border-white/10 pb-3 font-mono text-xs lowercase text-[#6f6b63]">
+          <span>results</span>
+          <span>8 live matches</span>
+        </div>
+
+        <div className="mb-7">
+          {results.map(([track, artist, time, state], index) => (
+            <div
+              key={track}
+              className={`grid grid-cols-[2.5rem_2.5rem_minmax(0,1fr)_10rem_3rem] items-center gap-4 border-b border-white/[0.055] px-2 py-3 ${
+                state === "active" ? "rounded-xl bg-white/[0.055]" : state === "fade" ? "opacity-45" : ""
+              }`}
+            >
+              <span className={`font-mono text-xs ${state === "active" ? "text-[#eee9dc]" : "text-[#6f6b63]"}`}>
+                {String(index + 1).padStart(2, "0")}
               </span>
-            ))}
+              <span className={`h-10 w-10 rounded-[9px] ${index < 2 ? "bg-gradient-to-br from-red-500 to-red-900" : "bg-[conic-gradient(from_90deg,#67e8f9,#facc15,#f472b6,#67e8f9)]"}`} />
+              <span className="truncate text-base font-medium text-[#eee9dc]">{track}</span>
+              <span className="truncate text-sm text-[#8f8b80]">{artist}</span>
+              <span className="text-right font-mono text-xs text-[#6f6b63]">{time}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-6 flex items-center gap-4">
+          <div className="h-[72px] w-[72px] shrink-0 rounded-[14px] bg-[conic-gradient(from_90deg,#67e8f9,#f472b6,#fef08a,#67e8f9)] p-1">
+            <div className="h-full w-full rounded-[11px] bg-[repeating-linear-gradient(45deg,#111_0_3px,#fff_3px_5px)] opacity-80" />
           </div>
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2 font-mono text-[11px] text-[#6f6b63]">
+              <span>now playing</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              <span>playing</span>
+            </div>
+            <div className="truncate text-lg font-semibold text-[#eee9dc]">Under Cover of Darkness</div>
+            <div className="truncate text-sm text-[#8f8b80]">The Strokes</div>
+            <div className="mt-3 h-0.5 bg-white/10">
+              <div className="h-full w-[42%] bg-[#aaa599]" />
+            </div>
+          </div>
+          <div className="hidden text-right text-xs text-[#6f6b63] sm:block">
+            <div className="font-mono">device</div>
+            <div className="mt-1 text-[#8f8b80]">Invincible</div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-x-6 gap-y-2 font-mono text-xs text-[#6f6b63]">
+          <span>enter play</span>
+          <span>cmd enter queue</span>
+          <span>tab switch</span>
+          <span>esc close</span>
         </div>
       </div>
     </Card>
