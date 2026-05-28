@@ -10,6 +10,10 @@ settings:
     PRODUCT_NAME: SpotifyTray
     SWIFT_VERSION: 6.0
     MACOSX_DEPLOYMENT_TARGET: 14.0
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    from: 2.6.0
 targets:
   SpotifyTray:
     type: application
@@ -37,7 +41,8 @@ targets:
     sources:
       - path: Sources
       - path: SpotifyTray/Assets.xcassets
-    dependencies: []
+    dependencies:
+      - package: Sparkle
   SpotifyTrayTests:
     type: bundle.unit-test
     platform: macOS

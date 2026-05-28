@@ -1,5 +1,6 @@
 import AppKit
 import Carbon
+import Sparkle
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -7,6 +8,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var panelController: SearchPanelController!
     private var statusBarController: StatusBarController!
     private var hotKeyManager: HotKeyManager!
+    private var updaterController: SPUStandardUpdaterController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSSetUncaughtExceptionHandler { exception in
@@ -23,8 +25,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         panelController = SearchPanelController(environment: environment)
         statusBarController = StatusBarController(environment: environment)
         hotKeyManager = HotKeyManager()
+        updaterController = SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: nil,
+            userDriverDelegate: nil
+        )
 
         environment.bind(panelController: panelController, statusBarController: statusBarController)
+        environment.updaterController = updaterController
         statusBarController.install()
         registerHotKeys()
         environment.configureLaunchAtLogin()

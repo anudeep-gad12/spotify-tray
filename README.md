@@ -33,6 +33,12 @@ If you prefer Homebrew:
 brew install --cask anudeep-gad12/tap/spotify-tray
 ```
 
+## Updates
+
+SpotifyTray checks for updates automatically once a day and prompts you when a new version is available. You can also trigger a check manually from the menu bar icon → **Check for Updates…**.
+
+If you upgrade by downloading the `.zip` directly (rather than via the in-app updater or Homebrew), quit the running SpotifyTray first from the menu bar icon → **Quit SpotifyTray** before replacing the `.app`, otherwise macOS will keep using the old version until you restart your Mac.
+
 ## First-Time Spotify Setup
 
 Each user needs their own Spotify developer app. SpotifyTray does not ship with your credentials.

@@ -32,6 +32,8 @@ final class StatusBarController: NSObject {
             state: environment.launchAtLoginEnabled ? .on : .off
         ))
         menu.addItem(.separator())
+        menu.addItem(makeItem(title: "Check for Updates…", action: #selector(checkForUpdates)))
+        menu.addItem(.separator())
         menu.addItem(makeItem(title: "Quit SpotifyTray", action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
     }
@@ -70,6 +72,10 @@ final class StatusBarController: NSObject {
 
     @objc private func toggleLaunchAtLogin() {
         environment.toggleLaunchAtLogin()
+    }
+
+    @objc private func checkForUpdates() {
+        environment.checkForUpdates()
     }
 
     @objc private func quit() {

@@ -1,5 +1,6 @@
 import AppKit
 import Foundation
+import Sparkle
 
 @MainActor
 final class AppEnvironment: ObservableObject {
@@ -12,6 +13,7 @@ final class AppEnvironment: ObservableObject {
     let playbackCoordinator: PlaybackCoordinator
     let launchAtLoginManager = LaunchAtLoginManager()
     let searchViewModel: SearchViewModel
+    var updaterController: SPUStandardUpdaterController?
 
     private weak var panelController: SearchPanelController?
     private weak var statusBarController: StatusBarController?
@@ -213,6 +215,15 @@ final class AppEnvironment: ObservableObject {
         if let spotifyURL = URL(string: "spotify:") {
             NSWorkspace.shared.open(spotifyURL)
         }
+    }
+
+    func checkForUpdates() {
+        guard let updaterController else {
+            AppLogger.shared.log("checkForUpdates requested but updater not configured", category: "app")
+            return
+        }
+        AppLogger.shared.log("checkForUpdates requested", category: "app")
+        updaterController.checkForUpdates(nil)
     }
 
     func toggleLaunchAtLogin() {

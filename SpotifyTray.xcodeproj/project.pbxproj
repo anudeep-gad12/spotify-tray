@@ -14,6 +14,7 @@
 		2F8EB7F781D9706D8AB58661 /* HotKeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ABD73A4C6995F36F6493BACD /* HotKeyManager.swift */; };
 		3B37C3522D9F37A3AD126B69 /* AppLogger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C6F2C9F27337DD21139BF4B /* AppLogger.swift */; };
 		40E3D81CAEC80ABCD7984A1D /* AppEnvironment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52ED2795C8572894D9023914 /* AppEnvironment.swift */; };
+		4251A9BC0C152380EDE25005 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 0C31B4B75B61ECA6332F9D50 /* Sparkle */; };
 		5ED0FDD18425AB8DBCCEE83F /* PKCETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D1E9AFBCEE091300076462FB /* PKCETests.swift */; };
 		605A51BB7DBB7C6541C7015C /* SearchPanelController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442B88ECAD41BE1D534B67FE /* SearchPanelController.swift */; };
 		761224B0A70CFF59137D1FAC /* ClientConfigurationStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 61E1B1F4859670FFE7B51D53 /* ClientConfigurationStore.swift */; };
@@ -75,6 +76,17 @@
 		EC806032504B7C8866E92F34 /* SpotifyTray.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpotifyTray.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FCBEEDC0BAD367C382051D1B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		276D39184CDE453486DA6AC5 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4251A9BC0C152380EDE25005 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		0C1CF511166E64026084A68B /* UI */ = {
@@ -259,6 +271,7 @@
 			buildPhases = (
 				85997A8E328E4DFD63BC834E /* Sources */,
 				5A0F15F4BED514ED1A952FEE /* Resources */,
+				276D39184CDE453486DA6AC5 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -266,6 +279,7 @@
 			);
 			name = SpotifyTray;
 			packageProductDependencies = (
+				0C31B4B75B61ECA6332F9D50 /* Sparkle */,
 			);
 			productName = SpotifyTray;
 			productReference = EC806032504B7C8866E92F34 /* SpotifyTray.app */;
@@ -290,6 +304,9 @@
 			);
 			mainGroup = C758954E1D82F2AEFDAD4849;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5240348B497454C95C6D59A2 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
@@ -598,6 +615,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		5240348B497454C95C6D59A2 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.6.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0C31B4B75B61ECA6332F9D50 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5240348B497454C95C6D59A2 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6B5724C31A284178B9C72F51 /* Project object */;
 }
