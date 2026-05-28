@@ -36,7 +36,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         statusBarController.install()
         registerHotKeys()
         environment.configureLaunchAtLogin()
-        ApplicationInstallCoordinator().promptToInstallInApplicationsFolderIfNeeded()
         AppLogger.shared.log("app launch completed", category: "app")
     }
 

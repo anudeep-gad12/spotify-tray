@@ -25,9 +25,9 @@ Requirements:
 
 ## Install
 
-Download the latest `SpotifyTray.app.zip` from GitHub Releases, unzip it, and open `SpotifyTray.app`. On first launch, SpotifyTray offers to copy itself into your `Applications` folder automatically (you only do this once). After that, in-app updates work without moving anything again. SpotifyTray is signed with a Developer ID and notarized by Apple, so macOS opens it without any warnings.
+Download `SpotifyTray.app.zip` from [Releases](https://github.com/anudeep-gad12/spotify-tray/releases/latest), unzip it, drag `SpotifyTray.app` into **Applications**, and open it.
 
-If you prefer Homebrew:
+Or with Homebrew:
 
 ```bash
 brew install --cask anudeep-gad12/tap/spotify-tray
@@ -35,11 +35,7 @@ brew install --cask anudeep-gad12/tap/spotify-tray
 
 ## Updates
 
-SpotifyTray checks for updates automatically once a day and prompts you when a new version is available. You can also trigger a check manually from the menu bar icon → **Check for Updates…**.
-
-If you upgrade by downloading the `.zip` directly (rather than via the in-app updater or Homebrew), quit the running SpotifyTray first from the menu bar icon → **Quit SpotifyTray** before replacing the `.app`, otherwise macOS will keep using the old version until you restart your Mac.
-
-If you open SpotifyTray from **Downloads** instead of **Applications**, macOS runs a temporary copy and Sparkle cannot auto-update. Use **Move to Applications** when prompted, or install with Homebrew to skip that step entirely.
+Use **Check for Updates…** in the menu bar. To install a downloaded `.zip` by hand, quit SpotifyTray first, then replace the app in **Applications**.
 
 ## First-Time Spotify Setup
 
