@@ -25,28 +25,13 @@ Requirements:
 
 ## Install
 
-Download the latest `SpotifyTray.app.zip` from GitHub Releases, then run:
+Download the latest `SpotifyTray.app.zip` from GitHub Releases, double-click to unzip, drag `SpotifyTray.app` into your `Applications` folder, and open it. SpotifyTray is signed with a Developer ID and notarized by Apple, so macOS opens it without any warnings.
 
-This project ships unsigned by default. macOS will quarantine it after download. Pick one approach:
-
-**Option A — Terminal:**
+If you prefer Homebrew:
 
 ```bash
-cd ~/Downloads
-unzip -o SpotifyTray.app.zip
-rm -rf ~/Applications/SpotifyTray.app
-mv SpotifyTray.app ~/Applications/
-xattr -dr com.apple.quarantine ~/Applications/SpotifyTray.app
-open ~/Applications/SpotifyTray.app
+brew install --cask anudeep-gad12/tap/spotify-tray
 ```
-
-**Option B — Right-click:**
-
-1. Right-click `SpotifyTray.app`
-2. Click `Open`
-3. Confirm the macOS warning once
-
-If Option B fails, use Option A.
 
 ## First-Time Spotify Setup
 
