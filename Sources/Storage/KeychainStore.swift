@@ -15,25 +15,12 @@ enum KeychainError: LocalizedError {
 struct KeychainStore {
     private let service: String
     private let account = "spotify-token"
-    private let fileURL: URL?
 
-    init(service: String, fileURL: URL? = nil) {
+    init(service: String) {
         self.service = service
-        self.fileURL = fileURL
     }
 
     func save(token: SpotifyToken) throws {
-        if let fileURL {
-            try FileManager.default.createDirectory(
-                at: fileURL.deletingLastPathComponent(),
-                withIntermediateDirectories: true,
-                attributes: nil
-            )
-            let data = try JSONEncoder().encode(token)
-            try data.write(to: fileURL, options: .atomic)
-            return
-        }
-
         let data = try JSONEncoder().encode(token)
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
@@ -57,15 +44,6 @@ struct KeychainStore {
     }
 
     func loadToken() throws -> SpotifyToken? {
-        if let fileURL {
-            guard FileManager.default.fileExists(atPath: fileURL.path) else {
-                return nil
-            }
-
-            let data = try Data(contentsOf: fileURL)
-            return try JSONDecoder().decode(SpotifyToken.self, from: data)
-        }
-
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
@@ -88,13 +66,6 @@ struct KeychainStore {
     }
 
     func deleteToken() throws {
-        if let fileURL {
-            if FileManager.default.fileExists(atPath: fileURL.path) {
-                try FileManager.default.removeItem(at: fileURL)
-            }
-            return
-        }
-
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,

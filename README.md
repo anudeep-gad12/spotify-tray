@@ -82,7 +82,7 @@ Log tail:
 
 ## Project Notes
 
-- user tokens are stored locally in `~/Library/Application Support/SpotifyTray/spotify-token.json`
+- user tokens are stored in the macOS Keychain under service `app.spotifytray`
 - logs are stored locally in `~/Library/Logs/SpotifyTray/app.log`
 - user client IDs are stored locally in app preferences
 - the repo does not need a real `SPOTIFY_CLIENT_ID` to build

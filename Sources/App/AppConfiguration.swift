@@ -7,7 +7,6 @@ struct AppConfiguration {
     let oauthRedirectPort: UInt16
     let appSupportDirectory: URL
     let logsDirectory: URL
-    let tokenFileURL: URL
     let logFileURL: URL
 
     var redirectURI: String {
@@ -21,7 +20,6 @@ struct AppConfiguration {
         oauthRedirectPort: UInt16 = 43821,
         appSupportDirectory: URL = FileManager.default.temporaryDirectory,
         logsDirectory: URL = FileManager.default.temporaryDirectory,
-        tokenFileURL: URL? = nil,
         logFileURL: URL? = nil
     ) {
         self.bundledSpotifyClientID = bundledSpotifyClientID
@@ -30,7 +28,6 @@ struct AppConfiguration {
         self.oauthRedirectPort = oauthRedirectPort
         self.appSupportDirectory = appSupportDirectory
         self.logsDirectory = logsDirectory
-        self.tokenFileURL = tokenFileURL ?? appSupportDirectory.appendingPathComponent("spotify-token.json")
         self.logFileURL = logFileURL ?? logsDirectory.appendingPathComponent("app.log")
     }
 

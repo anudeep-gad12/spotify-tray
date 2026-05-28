@@ -24,10 +24,7 @@ final class AppEnvironment: ObservableObject {
         AppLogger.shared.configure(logFileURL: configuration.logFileURL)
         AppLogger.shared.log("appSupportDirectory=\(configuration.appSupportDirectory.path)", category: "app")
         AppLogger.shared.log("logFile=\(configuration.logFileURL.path)", category: "app")
-        let keychain = KeychainStore(
-            service: "app.spotifytray",
-            fileURL: configuration.tokenFileURL
-        )
+        let keychain = KeychainStore(service: "app.spotifytray")
         authManager = SpotifyAuthManager(
             configuration: configuration,
             keychain: keychain,
