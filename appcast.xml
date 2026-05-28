@@ -1,0 +1,21 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>SpotifyTray</title>
+    <link>https://github.com/anudeep-gad12/spotify-tray</link>
+    <description>SpotifyTray release feed</description>
+    <language>en</language>
+    <item>
+      <title>v0.2.0-rc10</title>
+      <pubDate>Thu, 28 May 2026 17:01:05 +0000</pubDate>
+      <sparkle:version>44</sparkle:version>
+      <sparkle:shortVersionString>0.2.0-rc10</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="https://github.com/anudeep-gad12/spotify-tray/releases/download/v0.2.0-rc10/SpotifyTray.app.zip"
+        sparkle:edSignature="L0n/yhfi825/bGnEhgLv/MtRpMzFx4zmfvBvImp6MRMvcWokTDqHyd5tgmjcOQwULe1+7G90jgEJZXkcIWkwCg=="
+        length="1665529"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>
