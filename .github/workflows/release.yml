@@ -8,6 +8,8 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   build:
@@ -246,28 +248,28 @@ jobs:
           DOWNLOAD_URL="https://github.com/anudeep-gad12/spotify-tray/releases/download/${GITHUB_REF_NAME}/SpotifyTray.app.zip"
 
           cat > dist/appcast.xml <<EOF
-          <?xml version="1.0" standalone="yes"?>
-          <rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
-            <channel>
-              <title>SpotifyTray</title>
-              <link>https://github.com/anudeep-gad12/spotify-tray</link>
-              <description>SpotifyTray release feed</description>
-              <language>en</language>
-              <item>
-                <title>v${VERSION}</title>
-                <pubDate>${PUB_DATE}</pubDate>
-                <sparkle:version>${BUILD_NUMBER}</sparkle:version>
-                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
-                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
-                <enclosure
-                  url="${DOWNLOAD_URL}"
-                  sparkle:edSignature="${ED_SIGNATURE}"
-                  length="${LENGTH}"
-                  type="application/octet-stream" />
-              </item>
-            </channel>
-          </rss>
-          EOF
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>SpotifyTray</title>
+    <link>https://github.com/anudeep-gad12/spotify-tray</link>
+    <description>SpotifyTray release feed</description>
+    <language>en</language>
+    <item>
+      <title>v${VERSION}</title>
+      <pubDate>${PUB_DATE}</pubDate>
+      <sparkle:version>${BUILD_NUMBER}</sparkle:version>
+      <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <enclosure
+        url="${DOWNLOAD_URL}"
+        sparkle:edSignature="${ED_SIGNATURE}"
+        length="${LENGTH}"
+        type="application/octet-stream" />
+    </item>
+  </channel>
+</rss>
+EOF
 
           echo "Generated appcast.xml:"
           cat dist/appcast.xml
@@ -293,6 +295,19 @@ jobs:
             dist/SpotifyTray.app.zip
             dist/appcast.xml
           prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
+
+      - name: Publish appcast to GitHub Pages
+        if: startsWith(github.ref, 'refs/tags/')
+        run: mkdir -p pages && cp dist/appcast.xml pages/appcast.xml
+
+      - name: Deploy appcast feed
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: pages
+          keep_files: false
 
       - name: Update Homebrew tap
         if: startsWith(github.ref, 'refs/tags/') && steps.version.outputs.is_prerelease == 'false'
