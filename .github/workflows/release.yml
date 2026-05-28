@@ -87,10 +87,12 @@ jobs:
           codesign --display --verbose=4 "$APP"
 
       - name: Submit to Apple notarization
+        id: notarize
         run: |
           set -euo pipefail
           APP=".build/DerivedData/Build/Products/Release/SpotifyTray.app"
           NOTARIZE_ZIP="$RUNNER_TEMP/notarize-payload.zip"
+          SUBMIT_OUTPUT="$RUNNER_TEMP/notarize-submit.txt"
 
           ditto -c -k --sequesterRsrc --keepParent "$APP" "$NOTARIZE_ZIP"
 
@@ -98,7 +100,29 @@ jobs:
             --apple-id "$APPLE_ID" \
             --team-id "$APPLE_TEAM_ID" \
             --password "$APPLE_APP_PASSWORD" \
-            --wait
+            --wait \
+            --output-format json \
+            | tee "$SUBMIT_OUTPUT"
+
+          SUBMISSION_ID="$(jq -r .id "$SUBMIT_OUTPUT")"
+          STATUS="$(jq -r .status "$SUBMIT_OUTPUT")"
+
+          echo "submission_id=$SUBMISSION_ID" >> "$GITHUB_OUTPUT"
+          echo "status=$STATUS" >> "$GITHUB_OUTPUT"
+
+          if [ "$STATUS" != "Accepted" ]; then
+            echo "::error::Notarization returned status '$STATUS' (submission $SUBMISSION_ID). See the 'Fetch notarization log on failure' step for the rejection reason."
+            exit 1
+          fi
+
+      - name: Fetch notarization log on failure
+        if: failure() && steps.notarize.outputs.submission_id != ''
+        run: |
+          set -euo pipefail
+          xcrun notarytool log "${{ steps.notarize.outputs.submission_id }}" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_PASSWORD"
 
       - name: Staple notarization ticket
         run: |
