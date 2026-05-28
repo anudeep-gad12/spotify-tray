@@ -69,6 +69,9 @@ final class AppEnvironment: ObservableObject {
         searchViewModel.onClearConfigurationRequested = { [weak self] in
             self?.clearSpotifyConfiguration()
         }
+        searchViewModel.onOpenSpotifyRequested = { [weak self] in
+            self?.openSpotify()
+        }
     }
 
     func bind(panelController: SearchPanelController, statusBarController: StatusBarController) {

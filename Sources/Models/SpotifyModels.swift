@@ -171,9 +171,11 @@ struct SpotifyPlaybackItem: Decodable, Equatable {
     let artists: [SpotifyArtist]
     let album: SpotifyPlaybackAlbum?
     let uri: String?
+    let durationMs: Int?
 
     enum CodingKeys: String, CodingKey {
         case id, name, artists, album, uri
+        case durationMs = "duration_ms"
     }
 
     init(from decoder: Decoder) throws {
@@ -183,6 +185,7 @@ struct SpotifyPlaybackItem: Decodable, Equatable {
         artists = try container.decodeIfPresent([SpotifyArtist].self, forKey: .artists) ?? []
         album = try container.decodeIfPresent(SpotifyPlaybackAlbum.self, forKey: .album)
         uri = try container.decodeIfPresent(String.self, forKey: .uri)
+        durationMs = try container.decodeIfPresent(Int.self, forKey: .durationMs)
     }
 
     var artistLine: String {

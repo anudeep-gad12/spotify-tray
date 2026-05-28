@@ -37,7 +37,6 @@ final class HotKeyManager {
         var hotKeyRef: EventHotKeyRef?
         let signature = UTGetOSTypeFromString("SPTY" as CFString)
         let hotKeyID = EventHotKeyID(signature: signature, id: shortcut.id.rawValue)
-
         let status = RegisterEventHotKey(
             shortcut.key,
             shortcut.modifiers.carbonFlags,

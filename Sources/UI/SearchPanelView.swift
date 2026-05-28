@@ -13,7 +13,7 @@ struct SearchPanelView: View {
         ZStack {
             background
 
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 22) {
                 header
                 searchField
 
@@ -25,29 +25,31 @@ struct SearchPanelView: View {
                     inlineMessage(message)
                 }
 
+                resultsSurface
+
                 if shouldShowNowPlayingCard {
                     nowPlayingCard
                 }
 
-                resultsSurface
                 footer
             }
-            .padding(24)
+            .padding(.horizontal, 34)
+            .padding(.vertical, 30)
         }
         .frame(width: 800, height: 740)
-        .clipShape(RoundedRectangle(cornerRadius: 34, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 34, style: .continuous)
+            RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.16), Color.white.opacity(0.055)],
+                        colors: [Color.white.opacity(0.14), Color.white.opacity(0.045)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
                 )
         )
-        .shadow(color: .black.opacity(0.62), radius: 46, y: 24)
+        .shadow(color: .black.opacity(0.70), radius: 54, y: 26)
         .onAppear {
             requestFocus()
         }
@@ -61,7 +63,7 @@ struct SearchPanelView: View {
             LinearGradient(
                 colors: [
                     Color.panelCanvas,
-                    Color.panelSurface.opacity(0.96),
+                    Color.panelSurface.opacity(0.98),
                     Color.panelCanvas
                 ],
                 startPoint: .topLeading,
@@ -69,30 +71,12 @@ struct SearchPanelView: View {
             )
 
             PanelGrid()
-                .opacity(0.42)
-
-            Circle()
-                .fill(Color.accentGreen.opacity(0.12))
-                .blur(radius: 96)
-                .frame(width: 310, height: 310)
-                .offset(x: -285, y: -245)
-
-            Circle()
-                .fill(Color.purple.opacity(0.11))
-                .blur(radius: 130)
-                .frame(width: 360, height: 360)
-                .offset(x: 300, y: 255)
-
-            Circle()
-                .fill(Color.accentCyan.opacity(0.075))
-                .blur(radius: 80)
-                .frame(width: 220, height: 220)
-                .offset(x: 320, y: -180)
+                .opacity(0.16)
 
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.028), Color.clear, Color.black.opacity(0.12)],
+                        colors: [Color.white.opacity(0.022), Color.clear, Color.black.opacity(0.18)],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -102,209 +86,165 @@ struct SearchPanelView: View {
 
     private var header: some View {
         HStack(alignment: .top, spacing: 16) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 5) {
                 Text("SpotifyTray")
-                    .font(.system(size: 32, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-                    .tracking(-1.1)
+                    .font(.system(size: 24, weight: .semibold, design: .default))
+                    .foregroundStyle(Color.ink)
+                    .tracking(-0.45)
 
                 Text(headerSubtitle)
-                    .font(.system(size: 13, weight: .bold))
-                    .foregroundStyle(Color.white.opacity(0.48))
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.inkMuted)
                     .lineLimit(2)
             }
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 10) {
+            HStack(spacing: 12) {
+                openSpotifyButton
+
                 compactPill("Cmd+Shift+Space")
 
                 HStack(spacing: 6) {
                     Circle()
                         .fill(statusTint)
-                        .frame(width: 7, height: 7)
+                        .frame(width: 6, height: 6)
 
                     Text(statusLabel)
-                        .font(.system(size: 12, weight: .bold))
+                        .font(.system(size: 12, weight: .medium))
                 }
-                .foregroundStyle(statusTint)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(statusTint.opacity(0.11))
-                )
-                .overlay(
-                    Capsule(style: .continuous)
-                        .stroke(statusTint.opacity(0.13), lineWidth: 1)
-                )
+                .foregroundStyle(Color.inkMuted)
             }
         }
     }
 
-    private var searchField: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 19, weight: .semibold))
-                .foregroundStyle(Color.accentGreen.opacity(0.86))
+    private var openSpotifyButton: some View {
+        Button {
+            viewModel.requestOpenSpotify()
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "arrow.up.forward.app.fill")
+                    .font(.system(size: 11, weight: .medium))
 
-            TextField("Type a track or artist", text: $viewModel.query)
-                .textFieldStyle(.plain)
-                .font(.system(size: 22, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
-                .focused($focusedField, equals: .search)
-                .disabled(isSetupState)
-
-            if !viewModel.query.isEmpty {
-                Button {
-                    viewModel.query = ""
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 18))
-                        .foregroundStyle(Color.white.opacity(0.30))
-                }
-                .buttonStyle(.plain)
-                .disabled(isSetupState)
+                Text("Open Spotify")
+                    .font(.system(size: 12, weight: .medium))
             }
+            .foregroundStyle(Color.inkMuted)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.045))
+            )
+            .overlay(
+                Capsule(style: .continuous)
+                    .stroke(Color.separator, lineWidth: 1)
+            )
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 18)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.cardFill.opacity(isSetupState ? 0.58 : 0.92))
+        .buttonStyle(.plain)
+        .help("Open the Spotify desktop app")
+    }
 
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .fill(Color.accentGreen.opacity(0.035))
-                    .blur(radius: 8)
+    private var searchField: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("what do you want to hear?")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(Color.inkFaint)
+
+            HStack(spacing: 12) {
+                TextField("Search tracks or artists", text: $viewModel.query)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 34, weight: .semibold, design: .default))
+                    .foregroundStyle(Color.ink)
+                    .focused($focusedField, equals: .search)
+                    .disabled(isSetupState)
+
+                if !viewModel.query.isEmpty {
+                    Button {
+                        viewModel.query = ""
+                    } label: {
+                        Text("clear")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.inkFaint)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isSetupState)
+                }
             }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.12),
-                            Color.accentGreen.opacity(0.10),
-                            Color.white.opacity(0.055)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    ),
-                    lineWidth: 1
-                )
-        )
-        .shadow(color: .black.opacity(0.15), radius: 8, y: 4)
+
+            Rectangle()
+                .fill(Color.separator)
+                .frame(height: 1)
+        }
         .opacity(isSetupState ? 0.64 : 1)
     }
 
     private var modeSwitcher: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 24) {
             ForEach(SearchPanelMode.allCases) { mode in
                 let isActive = viewModel.activeMode == mode
                 Button {
                     viewModel.setMode(mode)
                 } label: {
-                    Text(mode.title)
-                        .font(.system(size: 12, weight: .black))
-                        .foregroundStyle(isActive ? Color.black.opacity(0.88) : Color.white.opacity(0.54))
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .background(
-                            Capsule(style: .continuous)
-                                .fill(isActive ? Color.accentGreen.opacity(0.94) : Color.clear)
-                        )
-                        .overlay(
-                            Capsule(style: .continuous)
-                                .stroke(isActive ? Color.accentCyan.opacity(0.22) : Color.clear, lineWidth: 1)
-                        )
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(mode.title.lowercased())
+                            .font(.system(size: 13, weight: isActive ? .semibold : .medium))
+                            .foregroundStyle(isActive ? Color.ink : Color.inkFaint)
+
+                        Rectangle()
+                            .fill(isActive ? Color.ink : Color.clear)
+                            .frame(width: 18, height: 1)
+                    }
                 }
                 .buttonStyle(.plain)
             }
 
             Spacer(minLength: 0)
         }
-        .padding(4)
-        .background(
-            Capsule(style: .continuous)
-                .fill(Color.black.opacity(0.22))
-        )
-        .overlay(
-            Capsule(style: .continuous)
-                .stroke(Color.white.opacity(0.075), lineWidth: 1)
-        )
     }
 
     private func inlineMessage(_ message: String) -> some View {
         HStack(spacing: 10) {
             Image(systemName: viewModel.inlineMessageIsError ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
-                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange : Color.accentGreen)
+                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange : Color.inkMuted)
 
             Text(message)
                 .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange.opacity(0.95) : Color.white.opacity(0.78))
+                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange.opacity(0.95) : Color.inkSecondary)
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(viewModel.inlineMessageIsError ? Color.orange.opacity(0.10) : Color.accentGreen.opacity(0.075))
+                .fill(viewModel.inlineMessageIsError ? Color.orange.opacity(0.10) : Color.white.opacity(0.035))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .stroke(viewModel.inlineMessageIsError ? Color.orange.opacity(0.18) : Color.accentGreen.opacity(0.11), lineWidth: 1)
+                .stroke(viewModel.inlineMessageIsError ? Color.orange.opacity(0.18) : Color.separator, lineWidth: 1)
         )
     }
 
     private var resultsSurface: some View {
-        VStack(alignment: .leading, spacing: 15) {
+        VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .center) {
                 Text(sectionTitle)
-                    .font(.system(size: 12, weight: .black))
-                    .foregroundStyle(Color.white.opacity(0.64))
-                    .textCase(.uppercase)
-                    .tracking(1.6)
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.inkFaint)
+                    .textCase(.lowercase)
 
                 Spacer()
 
                 sectionMeta
             }
 
+            Rectangle()
+                .fill(Color.separator.opacity(0.7))
+                .frame(height: 1)
+
             content
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
-        .padding(18)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .fill(Color.cardFill.opacity(0.84))
-
-                LinearGradient(
-                    colors: [
-                        Color.white.opacity(0.030),
-                        Color.clear
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.12),
-                            Color.white.opacity(0.055),
-                            Color.white.opacity(0.035)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    ),
-                    lineWidth: 1
-                )
-        )
     }
 
     @ViewBuilder
@@ -313,114 +253,123 @@ struct SearchPanelView: View {
         case .hidden:
             EmptyView()
         case .loading:
-            HStack(spacing: 14) {
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Color.white.opacity(0.055))
-                    .frame(width: 58, height: 58)
-                    .overlay {
-                        ProgressView()
-                            .progressViewStyle(.circular)
-                            .tint(Color.accentGreen.opacity(0.85))
-                            .scaleEffect(0.72)
-                    }
-
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Now Playing")
-                        .font(.system(size: 11, weight: .black))
-                        .foregroundStyle(Color.white.opacity(0.40))
-                        .textCase(.uppercase)
-                        .tracking(1.6)
-
-                    Text("Checking current playback")
-                        .font(.system(size: 15, weight: .black, design: .rounded))
-                        .foregroundStyle(.white.opacity(0.88))
-
-                    Text("Spotify is syncing what’s on right now.")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.50))
-                }
-
-                Spacer(minLength: 0)
-            }
-            .padding(16)
-            .background(nowPlayingBackground)
+            bottomDock(
+                artworkURL: nil,
+                title: "checking current playback",
+                artistLine: "Spotify is syncing what’s on right now.",
+                isPlaying: false,
+                deviceName: nil,
+                progressFraction: nil
+            )
         case .showing(let summary):
-            HStack(spacing: 14) {
-                AsyncImage(url: summary.artworkURL) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Color.white.opacity(0.055))
-                        .overlay {
-                            Image(systemName: "music.note")
-                                .font(.system(size: 18, weight: .semibold))
-                                .foregroundStyle(Color.white.opacity(0.34))
-                        }
-                }
-                .frame(width: 58, height: 58)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            bottomDock(
+                artworkURL: summary.artworkURL,
+                title: summary.title,
+                artistLine: summary.artistLine,
+                isPlaying: summary.isPlaying,
+                deviceName: summary.deviceName,
+                progressFraction: summary.progressFraction
+            )
+        }
+    }
 
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Text("Now Playing")
-                            .font(.system(size: 11, weight: .black))
-                            .foregroundStyle(Color.white.opacity(0.40))
-                            .textCase(.uppercase)
-                            .tracking(1.6)
-
-                        HStack(spacing: 5) {
-                            Circle()
-                                .fill(summary.isPlaying ? Color.accentGreen.opacity(0.95) : Color.orange.opacity(0.95))
-                                .frame(width: 7, height: 7)
-
-                            Text(summary.isPlaying ? "Playing" : "Paused")
-                                .font(.system(size: 11, weight: .black))
-                                .foregroundStyle(summary.isPlaying ? Color.accentGreen.opacity(0.95) : Color.orange.opacity(0.95))
-                        }
+    private func bottomDock(
+        artworkURL: URL?,
+        title: String,
+        artistLine: String,
+        isPlaying: Bool,
+        deviceName: String?,
+        progressFraction: CGFloat?
+    ) -> some View {
+        HStack(spacing: 16) {
+            AsyncImage(url: artworkURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .fill(Color.white.opacity(0.055))
+                    .overlay {
+                        Image(systemName: "music.note")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundStyle(Color.inkFaint)
                     }
+            }
+            .frame(width: 72, height: 72)
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-                    Text(summary.title)
-                        .font(.system(size: 18, weight: .black, design: .rounded))
-                        .foregroundStyle(.white)
-                        .lineLimit(1)
+            VStack(alignment: .leading, spacing: 9) {
+                HStack(spacing: 8) {
+                    Text("now playing")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.inkFaint)
 
-                    Text(summary.artistLine)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.white.opacity(0.58))
-                        .lineLimit(1)
+                    Circle()
+                        .fill(isPlaying ? Color.playingDot : Color.orange.opacity(0.85))
+                        .frame(width: 6, height: 6)
+
+                    Text(isPlaying ? "playing" : "paused")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Color.inkMuted)
                 }
 
-                Spacer(minLength: 0)
+                Text(title)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(1)
 
-                if let deviceName = summary.deviceName, !deviceName.isEmpty {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text("Device")
-                            .font(.system(size: 10, weight: .black))
-                            .foregroundStyle(Color.white.opacity(0.32))
-                            .textCase(.uppercase)
-                            .tracking(1.3)
+                Text(artistLine)
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(Color.inkMuted)
+                    .lineLimit(1)
 
-                        Text(deviceName)
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(Color.white.opacity(0.62))
-                            .multilineTextAlignment(.trailing)
-                            .lineLimit(2)
-                    }
-                    .frame(maxWidth: 120, alignment: .trailing)
+                seekBar(progressFraction)
+            }
+
+            Spacer(minLength: 0)
+
+            if let deviceName, !deviceName.isEmpty {
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("device")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.inkFaint)
+
+                    Text(deviceName)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Color.inkMuted)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.trailing)
+                }
+                .frame(maxWidth: 120, alignment: .trailing)
+            }
+        }
+        .padding(.top, 2)
+    }
+
+    private func seekBar(_ progressFraction: CGFloat?) -> some View {
+        GeometryReader { geometry in
+            ZStack(alignment: .leading) {
+                Rectangle()
+                    .fill(Color.white.opacity(0.090))
+                    .frame(height: 2)
+
+                if let progressFraction {
+                    Rectangle()
+                        .fill(Color.inkSecondary)
+                        .frame(width: geometry.size.width * progressFraction, height: 2)
                 }
             }
-            .padding(16)
-            .background(nowPlayingBackground)
         }
+        .frame(height: 2)
+        .padding(.top, 2)
     }
 
     @ViewBuilder
     private var sectionMeta: some View {
         Text(sectionMetaText)
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.38))
+            .font(.system(size: 11, weight: .medium, design: .monospaced))
+            .foregroundStyle(Color.inkFaint)
+            .textCase(.lowercase)
     }
 
     @ViewBuilder
@@ -541,24 +490,16 @@ struct SearchPanelView: View {
     }
 
     private func loadingState(icon: String, title: String, subtitle: String) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            emptyState(icon: icon, title: title, subtitle: subtitle)
+        VStack(alignment: .leading, spacing: 16) {
+            Text(title.lowercased())
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(Color.inkSecondary)
 
-            HStack(spacing: 6) {
+            VStack(spacing: 0) {
                 ForEach(0..<5, id: \.self) { index in
-                    Capsule(style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.accentGreen.opacity(0.86), Color.accentCyan.opacity(0.62)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 4, height: 16)
-                        .modifier(BounceAnimation(delay: Double(index) * 0.1))
+                    SkeletonTrackRow(index: index)
                 }
             }
-            .padding(.top, 8)
         }
     }
 
@@ -567,7 +508,7 @@ struct SearchPanelView: View {
             ScrollView {
                 LazyVStack(spacing: 8) {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                        TrackListRow(item: item, isSelected: index == viewModel.selectedIndex)
+                        TrackListRow(item: item, index: index, isSelected: index == viewModel.selectedIndex)
                             .id(item.id)
                             .contentShape(Rectangle())
                             .onTapGesture {
@@ -617,13 +558,13 @@ struct SearchPanelView: View {
                 TextField("32-character Client ID", text: $viewModel.setupClientID)
                     .textFieldStyle(.plain)
                     .font(.system(size: 19, weight: .bold, design: .monospaced))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
                     .focused($focusedField, equals: .clientID)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Color.cardFill.opacity(0.88))
+                            .fill(Color.white.opacity(0.035))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -666,25 +607,25 @@ struct SearchPanelView: View {
         HStack(alignment: .top, spacing: 14) {
             Text(number)
                 .font(.system(size: 12, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.accentGreen)
+                .foregroundStyle(Color.ink)
                 .frame(width: 28, height: 28)
                 .background(
                     Circle()
-                        .fill(Color.accentGreen.opacity(0.10))
+                        .fill(Color.white.opacity(0.055))
                 )
                 .overlay(
                     Circle()
-                        .stroke(Color.accentGreen.opacity(0.14), lineWidth: 1)
+                        .stroke(Color.separator, lineWidth: 1)
                 )
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.system(size: 14, weight: .black))
-                    .foregroundStyle(Color.white.opacity(0.88))
+                    .foregroundStyle(Color.inkSecondary)
 
                 Text(detail)
                     .font(.system(size: emphasis ? 13 : 14, weight: emphasis ? .bold : .medium, design: emphasis ? .monospaced : .default))
-                    .foregroundStyle(Color.white.opacity(emphasis ? 0.82 : 0.58))
+                    .foregroundStyle(emphasis ? Color.inkSecondary : Color.inkMuted)
                     .textSelection(.enabled)
             }
         }
@@ -692,7 +633,7 @@ struct SearchPanelView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.cardFill.opacity(0.74))
+                .fill(Color.white.opacity(0.026))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
@@ -706,58 +647,38 @@ struct SearchPanelView: View {
         subtitle: String,
         tint: Color = .green
     ) -> some View {
-        VStack(alignment: .leading, spacing: 18) {
-            ZStack {
-                Circle()
-                    .fill(tint.opacity(0.105))
-                    .frame(width: 56, height: 56)
-                    .overlay(
-                        Circle()
-                            .stroke(tint.opacity(0.13), lineWidth: 1)
-                    )
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title.lowercased())
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(tint == .orange ? Color.orange.opacity(0.95) : Color.inkSecondary)
 
-                Image(systemName: icon)
-                    .font(.system(size: 21, weight: .bold))
-                    .foregroundStyle(tint.opacity(0.96))
-            }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(title)
-                    .font(.system(size: 21, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
-
-                Text(subtitle)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.60))
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            Text(subtitle)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundStyle(Color.inkFaint)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.top, 12)
+        .padding(.top, 10)
     }
 
     private var footer: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 9) {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 16) {
                 if !isSetupState {
                     keyboardHint("Enter", "Play")
                     keyboardHint("Cmd+Enter", "Queue")
                     keyboardHint("↑ ↓", "Move")
+                    keyboardHint("Tab", "Switch")
                 }
 
                 keyboardHint("Esc", "Close")
             }
 
             if !isSetupState {
-                HStack(spacing: 9) {
+                HStack(spacing: 16) {
                     keyboardHint("Ctrl+Opt+P", "Pause")
                     keyboardHint("Ctrl+Opt+N", "Next")
                     keyboardHint("Ctrl+Opt+B", "Previous")
-                }
-
-                HStack(spacing: 9) {
-                    keyboardHint("Tab", "Next tab")
-                    keyboardHint("Shift+Tab", "Previous tab")
                 }
             }
         }
@@ -825,7 +746,7 @@ struct SearchPanelView: View {
         case .setupRequired:
             return "First-run setup for your own Spotify developer app."
         default:
-            return "Search, play, and queue tracks on your Mac without touching the Spotify window."
+            return "Search and queue without switching apps."
         }
     }
 
@@ -836,9 +757,9 @@ struct SearchPanelView: View {
         case .authenticationRequired:
             return "Ready to connect"
         case .loading:
-            return "Searching"
+            return "searching"
         default:
-            return "Premium flow"
+            return "ready"
         }
     }
 
@@ -847,9 +768,9 @@ struct SearchPanelView: View {
         case .setupRequired:
             return Color.orange.opacity(0.95)
         case .authenticationRequired:
-            return Color.cyan.opacity(0.95)
+            return Color.inkMuted
         default:
-            return Color.green.opacity(0.95)
+            return Color.playingDot
         }
     }
 
@@ -883,59 +804,28 @@ struct SearchPanelView: View {
 
     private var primaryButtonBackground: some View {
         Capsule(style: .continuous)
-            .fill(
-                LinearGradient(
-                    colors: [Color.accentGreen.opacity(0.95), Color.accentCyan.opacity(0.72)],
-                    startPoint: .leading,
-                    endPoint: .trailing
-                )
-            )
+            .fill(Color.ink)
     }
 
     private var nowPlayingBackground: some View {
-        RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .fill(Color.cardFill.opacity(0.82))
-            .overlay(
-                RoundedRectangle(cornerRadius: 22, style: .continuous)
-                    .stroke(Color.white.opacity(0.085), lineWidth: 1)
-            )
+        Color.clear
     }
 
     private func compactPill(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 12, weight: .bold, design: .monospaced))
-            .foregroundStyle(Color.white.opacity(0.74))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 9)
-            .background(
-                Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.065))
-            )
-            .overlay(
-                Capsule(style: .continuous)
-                    .stroke(Color.white.opacity(0.07), lineWidth: 1)
-            )
+            .font(.system(size: 12, weight: .medium, design: .monospaced))
+            .foregroundStyle(Color.inkMuted)
     }
 
     private func keyboardHint(_ key: String, _ label: String) -> some View {
-        HStack(spacing: 7) {
+        HStack(spacing: 6) {
             Text(key)
-                .font(.system(size: 10, weight: .black, design: .monospaced))
-                .foregroundStyle(Color.white.opacity(0.78))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 5)
-                .background(
-                    Capsule(style: .continuous)
-                        .fill(Color.white.opacity(0.070))
-                )
-                .overlay(
-                    Capsule(style: .continuous)
-                        .stroke(Color.white.opacity(0.055), lineWidth: 1)
-                )
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.inkMuted)
 
             Text(label)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundStyle(Color.white.opacity(0.38))
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(Color.inkFaint)
         }
     }
 
@@ -948,6 +838,7 @@ struct SearchPanelView: View {
 
 private struct TrackListRow: View {
     let item: TrackListItem
+    let index: Int
     let isSelected: Bool
 
     @State private var isHovered = false
@@ -957,68 +848,48 @@ private struct TrackListRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 14) {
-            ZStack {
-                AsyncImage(url: track.artworkURL) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(
-                            LinearGradient(
-                                colors: [Color.white.opacity(0.075), Color.white.opacity(0.035)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .overlay {
-                            Image(systemName: "music.note")
-                                .font(.system(size: 18))
-                                .foregroundStyle(Color.white.opacity(0.25))
-                        }
-                }
-                .frame(width: 52, height: 52)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        HStack(spacing: 16) {
+            Text(String(format: "%02d", index + 1))
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(isSelected ? Color.ink : Color.inkFaint)
+                .frame(width: 28, alignment: .leading)
 
-                if isSelected {
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(Color.accentGreen.opacity(0.62), lineWidth: 2)
-                        .frame(width: 52, height: 52)
-                }
+            AsyncImage(url: track.artworkURL) { image in
+                image
+                    .resizable()
+                    .scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 9, style: .continuous)
+                    .fill(Color.white.opacity(0.055))
+                    .overlay {
+                        Image(systemName: "music.note")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Color.inkFaint)
+                    }
             }
+            .frame(width: 40, height: 40)
+            .clipShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(track.name)
-                    .font(.system(size: 17, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
+                    .font(.system(size: 16, weight: isSelected ? .semibold : .medium))
+                    .foregroundStyle(Color.ink)
                     .lineLimit(1)
 
                 HStack(spacing: 6) {
                     Text(track.artistLine)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.70))
+                        .font(.system(size: 13, weight: .regular))
+                        .foregroundStyle(Color.inkMuted)
                         .lineLimit(1)
-
-                    if !track.album.name.isEmpty {
-                        Text("•")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.30))
-
-                        Text(track.album.name)
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(Color.white.opacity(0.40))
-                            .lineLimit(1)
-                    }
 
                     if let metadata = item.metadata {
                         Text("•")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundStyle(Color.white.opacity(0.30))
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(Color.inkFaint)
 
                         Text(metadata)
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundStyle(Color.accentGreen.opacity(0.56))
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(Color.inkFaint)
                             .lineLimit(1)
                     }
                 }
@@ -1028,94 +899,22 @@ private struct TrackListRow: View {
 
             if let duration = track.durationMs {
                 Text(formatDuration(duration))
-                    .font(.system(size: 11, weight: .black, design: .monospaced))
-                    .foregroundStyle(Color.white.opacity(0.42))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(
-                        Capsule(style: .continuous)
-                            .fill(Color.white.opacity(0.055))
-                    )
-            }
-
-            if isSelected {
-                Image(systemName: "play.fill")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.black.opacity(0.85))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(
-                        Capsule(style: .continuous)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.accentGreen.opacity(0.95), Color.accentCyan.opacity(0.72)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                    )
-            } else if isHovered {
-                Image(systemName: "play.fill")
-                    .font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(Color.accentGreen.opacity(0.74))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 7)
-                    .background(
-                        Capsule(style: .continuous)
-                            .fill(Color.accentGreen.opacity(0.10))
-                    )
-                    .overlay(
-                        Capsule(style: .continuous)
-                            .stroke(Color.accentGreen.opacity(0.20), lineWidth: 1)
-                    )
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.inkFaint)
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 10)
         .background(
-            ZStack {
-                if isSelected {
-                    LinearGradient(
-                        colors: [
-                            Color.accentGreen.opacity(0.105),
-                            Color.accentCyan.opacity(0.050)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                } else if isHovered {
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.050),
-                            Color.white.opacity(0.03)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    LinearGradient(
-                        colors: [
-                            Color.white.opacity(0.033),
-                            Color.white.opacity(0.025)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                }
-            }
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .fill(isSelected ? Color.white.opacity(0.065) : isHovered ? Color.white.opacity(0.030) : Color.clear)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 20, style: .continuous)
-                .stroke(
-                    isSelected
-                    ? Color.accentGreen.opacity(0.26)
-                    : isHovered
-                        ? Color.white.opacity(0.085)
-                        : Color.white.opacity(0.052),
-                    lineWidth: 1
-                )
+            Rectangle()
+                .fill(Color.separator.opacity(0.48))
+                .frame(height: 1),
+            alignment: .bottom
         )
-        .shadow(color: .black.opacity(isSelected ? 0.16 : 0.05), radius: isSelected ? 9 : 3, y: 3)
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
                 isHovered = hovering
@@ -1128,6 +927,54 @@ private struct TrackListRow: View {
         let minutes = totalSeconds / 60
         let seconds = totalSeconds % 60
         return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+private struct SkeletonTrackRow: View {
+    let index: Int
+
+    var body: some View {
+        HStack(spacing: 16) {
+            Text(String(format: "%02d", index + 1))
+                .font(.system(size: 12, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.inkFaint.opacity(0.55))
+                .frame(width: 28, alignment: .leading)
+
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(Color.white.opacity(0.055))
+                .frame(width: 40, height: 40)
+
+            VStack(alignment: .leading, spacing: 7) {
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.075))
+                    .frame(width: 230, height: 10)
+
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.045))
+                    .frame(width: 130, height: 8)
+            }
+
+            Spacer(minLength: 0)
+
+            Capsule(style: .continuous)
+                .fill(Color.white.opacity(0.045))
+                .frame(width: 34, height: 9)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 11)
+        .overlay(
+            Rectangle()
+                .fill(Color.separator.opacity(0.36))
+                .frame(height: 1),
+            alignment: .bottom
+        )
+    }
+}
+
+private extension NowPlayingSummary {
+    var progressFraction: CGFloat? {
+        guard let progressMs, let durationMs, durationMs > 0 else { return nil }
+        return min(max(CGFloat(progressMs) / CGFloat(durationMs), 0), 1)
     }
 }
 
@@ -1157,32 +1004,12 @@ private struct PanelGrid: View {
 }
 
 private extension Color {
-    static let panelCanvas = Color(nsColor: NSColor(calibratedRed: 0.027, green: 0.043, blue: 0.067, alpha: 1.0))
-    static let panelSurface = Color(nsColor: NSColor(calibratedRed: 0.050, green: 0.064, blue: 0.086, alpha: 1.0))
-    static let cardFill = Color(nsColor: NSColor(calibratedRed: 0.066, green: 0.082, blue: 0.110, alpha: 1.0))
-    static let accentGreen = Color(nsColor: NSColor(calibratedRed: 0.337, green: 0.827, blue: 0.392, alpha: 1.0))
-    static let accentCyan = Color(nsColor: NSColor(calibratedRed: 0.392, green: 0.910, blue: 0.980, alpha: 1.0))
-}
-
-// MARK: - Loading Animation
-
-private struct BounceAnimation: ViewModifier {
-    let delay: Double
-
-    @State private var isAnimating = false
-
-    func body(content: Content) -> some View {
-        content
-            .scaleEffect(isAnimating ? 1.0 : 0.5)
-            .opacity(isAnimating ? 1.0 : 0.4)
-            .animation(
-                .easeInOut(duration: 0.6)
-                .repeatForever(autoreverses: true)
-                .delay(delay),
-                value: isAnimating
-            )
-            .onAppear {
-                isAnimating = true
-            }
-    }
+    static let panelCanvas = Color(nsColor: NSColor(calibratedRed: 0.020, green: 0.021, blue: 0.024, alpha: 1.0))
+    static let panelSurface = Color(nsColor: NSColor(calibratedRed: 0.041, green: 0.043, blue: 0.048, alpha: 1.0))
+    static let ink = Color(nsColor: NSColor(calibratedRed: 0.935, green: 0.925, blue: 0.895, alpha: 1.0))
+    static let inkSecondary = Color(nsColor: NSColor(calibratedRed: 0.720, green: 0.710, blue: 0.680, alpha: 1.0))
+    static let inkMuted = Color(nsColor: NSColor(calibratedRed: 0.520, green: 0.515, blue: 0.490, alpha: 1.0))
+    static let inkFaint = Color(nsColor: NSColor(calibratedRed: 0.390, green: 0.390, blue: 0.370, alpha: 1.0))
+    static let separator = Color.white.opacity(0.085)
+    static let playingDot = Color(nsColor: NSColor(calibratedRed: 0.337, green: 0.827, blue: 0.392, alpha: 1.0))
 }

@@ -12,6 +12,8 @@ struct NowPlayingSummary: Equatable {
     let artworkURL: URL?
     let isPlaying: Bool
     let deviceName: String?
+    let progressMs: Int?
+    let durationMs: Int?
 }
 
 @MainActor
@@ -43,6 +45,7 @@ final class SearchViewModel: ObservableObject {
     var onLoginRequested: (() -> Void)?
     var onSaveClientIDRequested: ((String) -> Void)?
     var onClearConfigurationRequested: (() -> Void)?
+    var onOpenSpotifyRequested: (() -> Void)?
     var isSpotifyConfigured: (() -> Bool)?
     var currentConfiguredClientID: (() -> String)?
 
@@ -193,6 +196,10 @@ final class SearchViewModel: ObservableObject {
     func requestLogin() {
         guard !loginInProgress else { return }
         onLoginRequested?()
+    }
+
+    func requestOpenSpotify() {
+        onOpenSpotifyRequested?()
     }
 
     func retrySearchIfNeeded() {
@@ -470,7 +477,9 @@ extension SearchViewModel {
             artistLine: item.artistLine,
             artworkURL: item.artworkURL,
             isPlaying: playbackState.isPlaying,
-            deviceName: playbackState.device?.name
+            deviceName: playbackState.device?.name,
+            progressMs: playbackState.progressMs,
+            durationMs: item.durationMs
         )
     }
 
