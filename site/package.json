@@ -15,8 +15,6 @@
     "react-dom": "^19.2.6"
   },
   "devDependencies": {
-    "png-to-ico": "^2.1.8",
-    "sharp": "^0.34.2",
     "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",

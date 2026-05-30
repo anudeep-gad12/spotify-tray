@@ -4,12 +4,11 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const brandDir = __dirname;
 const repoRoot = resolve(__dirname, "../..");
-const require = createRequire(join(repoRoot, "site/package.json"));
+const require = createRequire(join(brandDir, "package.json"));
 const sharp = require("sharp");
 const pngToIco = require("png-to-ico");
-
-const brandDir = __dirname;
 const logoSvgPath = join(brandDir, "logo-mark.svg");
 const logoSimpleSvgPath = join(brandDir, "logo-mark-simple.svg");
 const appIconDir = join(repoRoot, "SpotifyTray/Assets.xcassets/AppIcon.appiconset");

@@ -9,6 +9,7 @@ SpotifyTray.xcodeproj/xcuserdata/
 SpotifyTray.xcodeproj/project.xcworkspace/xcuserdata/
 .codex/
 site/node_modules/
+assets/brand/node_modules/
 site/dist/
 site/*.tsbuildinfo
 site/*.js
