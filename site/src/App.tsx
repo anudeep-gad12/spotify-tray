@@ -226,7 +226,10 @@ export default function App() {
           </a>
           <nav className="hidden items-center gap-8 text-sm font-bold text-white/48 md:flex">
             <a href="#features" className="transition hover:text-white">Features</a>
-            <a href={repoUrl} target="_blank" rel="noreferrer" className="transition hover:text-white">GitHub</a>
+            <a href={repoUrl} target="_blank" rel="noreferrer" className="flex items-center gap-2 transition hover:text-white">
+              <Github size={14} />
+              Star
+            </a>
             <a href={downloadUrl} download="SpotifyTray.dmg" className="rounded-full bg-white px-5 py-2.5 text-black transition hover:scale-105">Download</a>
           </nav>
           <a href={downloadUrl} download="SpotifyTray.dmg" className="rounded-full bg-white px-4 py-2 text-sm font-black text-black md:hidden">Download</a>
@@ -248,10 +251,6 @@ export default function App() {
               <Button as="a" href={downloadUrl} download="SpotifyTray.dmg">
                 <Download size={17} />
                 Download for macOS
-              </Button>
-              <Button as="a" href={repoUrl} target="_blank" rel="noreferrer" variant="secondary">
-                <Github size={17} />
-                Star on GitHub
               </Button>
             </div>
             <HomebrewInstall />
