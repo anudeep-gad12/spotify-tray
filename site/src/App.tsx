@@ -55,9 +55,12 @@ const shortcuts = [
 
 function LogoMark() {
   return (
-    <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.055] text-accent shadow-glow">
-      <Music4 size={17} />
-    </div>
+    <img
+      src="/logo-mark.svg"
+      alt=""
+      aria-hidden
+      className="h-9 w-9 shrink-0 rounded-xl shadow-glow"
+    />
   );
 }
 

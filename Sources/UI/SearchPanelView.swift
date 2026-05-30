@@ -87,10 +87,19 @@ struct SearchPanelView: View {
     private var header: some View {
         HStack(alignment: .top, spacing: 16) {
             VStack(alignment: .leading, spacing: 5) {
-                Text("SpotifyTray")
-                    .font(.system(size: 24, weight: .semibold, design: .default))
-                    .foregroundStyle(Color.ink)
-                    .tracking(-0.45)
+                HStack(alignment: .center, spacing: 10) {
+                    Image("LogoMark")
+                        .resizable()
+                        .interpolation(.high)
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 28, height: 28)
+                        .accessibilityHidden(true)
+
+                    Text("SpotifyTray")
+                        .font(.system(size: 24, weight: .semibold, design: .default))
+                        .foregroundStyle(Color.ink)
+                        .tracking(-0.45)
+                }
 
                 Text(headerSubtitle)
                     .font(.system(size: 13, weight: .medium))

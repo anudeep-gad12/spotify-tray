@@ -7,7 +7,7 @@
 
   <g clip-path="url(#squircle)">
     <rect width="512" height="512" fill="#050506"/>
-    <circle cx="220" cy="220" r="128" fill="none" stroke="#eee9dc" stroke-width="52"/>
-    <rect x="318" y="318" width="52" height="168" rx="26" fill="#eee9dc" transform="rotate(45 344 402)"/>
+    <circle cx="216" cy="216" r="132" fill="none" stroke="#eee9dc" stroke-width="72"/>
+    <rect x="312" y="312" width="64" height="176" rx="32" fill="#eee9dc" transform="rotate(45 344 400)"/>
   </g>
 </svg>
