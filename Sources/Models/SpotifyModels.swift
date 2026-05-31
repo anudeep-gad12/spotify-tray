@@ -38,11 +38,59 @@ struct SpotifyImage: Decodable, Equatable {
 }
 
 struct SpotifySearchResponse: Decodable {
-    let tracks: SpotifyTrackContainer
+    let tracks: SpotifyTrackContainer?
+    let albums: SpotifyAlbumContainer?
 }
 
 struct SpotifyTrackContainer: Decodable {
     let items: [SpotifyTrack]
+}
+
+struct SpotifyAlbumContainer: Decodable {
+    let items: [SpotifyAlbumItem]
+}
+
+struct SpotifyAlbumItem: Decodable, Identifiable, Equatable {
+    let id: String
+    let name: String
+    let artists: [SpotifyArtist]
+    let images: [SpotifyImage]
+    let uri: String
+    let albumType: String?
+    let totalTracks: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, artists, images, uri
+        case albumType = "album_type"
+        case totalTracks = "total_tracks"
+    }
+
+    var artistLine: String {
+        artists.map(\.name).joined(separator: ", ")
+    }
+
+    var artworkURL: URL? {
+        images.first?.url
+    }
+}
+
+struct SpotifyAlbumTracksResponse: Decodable {
+    let items: [SpotifyAlbumTrackItem]
+}
+
+struct SpotifyAlbumTrackItem: Decodable, Equatable {
+    let id: String
+    let name: String
+    let artists: [SpotifyArtist]
+    let uri: String
+    let durationMs: Int?
+    let trackNumber: Int?
+
+    enum CodingKeys: String, CodingKey {
+        case id, name, artists, uri
+        case durationMs = "duration_ms"
+        case trackNumber = "track_number"
+    }
 }
 
 struct SpotifyQueueResponse: Decodable, Equatable {

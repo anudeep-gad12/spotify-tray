@@ -234,26 +234,147 @@ struct SearchPanelView: View {
     }
 
     private var resultsSurface: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center) {
-                Text(sectionTitle)
-                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                    .foregroundStyle(Color.inkFaint)
-                    .textCase(.lowercase)
+        HStack(alignment: .top, spacing: 0) {
+            // Left: main list
+            VStack(alignment: .leading, spacing: 14) {
+                HStack(alignment: .center) {
+                    Text(sectionTitle)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.inkFaint)
+                        .textCase(.lowercase)
 
-                Spacer()
+                    Spacer()
 
-                sectionMeta
+                    sectionMeta
+                }
+
+                Rectangle()
+                    .fill(Color.separator.opacity(0.7))
+                    .frame(height: 1)
+
+                content
             }
 
-            Rectangle()
-                .fill(Color.separator.opacity(0.7))
-                .frame(height: 1)
-
-            content
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            // Right: album detail panel
+            if viewModel.selectedAlbum != nil {
+                albumDetailPanel
+                    .transition(.move(edge: .trailing).combined(with: .opacity))
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .animation(.easeInOut(duration: 0.22), value: viewModel.selectedAlbum?.id)
+    }
+
+    @ViewBuilder
+    private var albumDetailPanel: some View {
+        if let album = viewModel.selectedAlbum {
+            VStack(alignment: .leading, spacing: 14) {
+                // Header
+                HStack {
+                    Text("Album")
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.inkFaint)
+                        .textCase(.lowercase)
+
+                    Spacer()
+
+                    Button {
+                        viewModel.closeAlbumDetail()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(Color.inkFaint)
+                    }
+                    .buttonStyle(.plain)
+                }
+
+                Rectangle()
+                    .fill(Color.separator.opacity(0.7))
+                    .frame(height: 1)
+
+                // Album info
+                HStack(spacing: 12) {
+                    AsyncImage(url: album.artworkURL) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(Color.white.opacity(0.055))
+                            .overlay {
+                                Image(systemName: "square.stack")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundStyle(Color.inkFaint)
+                            }
+                    }
+                    .frame(width: 56, height: 56)
+                    .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(album.name)
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundStyle(Color.ink)
+                            .lineLimit(2)
+
+                        Text(album.artistLine)
+                            .font(.system(size: 12, weight: .regular))
+                            .foregroundStyle(Color.inkMuted)
+                            .lineLimit(1)
+
+                        if let total = album.totalTracks {
+                            Text("\(total) tracks")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(Color.inkFaint)
+                        }
+                    }
+                }
+                .padding(.top, 2)
+
+                // Tracks
+                switch viewModel.albumTracksState {
+                case .idle, .loading:
+                    VStack(spacing: 0) {
+                        ForEach(0..<4, id: \.self) { index in
+                            SkeletonTrackRow(index: index)
+                        }
+                    }
+                case .loaded(let items):
+                    ScrollViewReader { proxy in
+                        ScrollView {
+                            LazyVStack(spacing: 6) {
+                                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                                    AlbumTrackRow(item: item, index: index, isSelected: index == viewModel.albumTrackSelectedIndex)
+                                        .id(item.id)
+                                        .contentShape(Rectangle())
+                                        .onTapGesture {
+                                            Task { await viewModel.onPlayRequested?(item.track) }
+                                        }
+                                }
+                            }
+                        }
+                        .scrollIndicators(.hidden)
+                        .onChange(of: viewModel.albumTrackSelectedIndex) {
+                            guard items.indices.contains(viewModel.albumTrackSelectedIndex) else { return }
+                            withAnimation(.easeInOut(duration: 0.14)) {
+                                proxy.scrollTo(items[viewModel.albumTrackSelectedIndex].id, anchor: .center)
+                            }
+                        }
+                    }
+                case .empty:
+                    Text("No tracks found")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.inkFaint)
+                        .padding(.top, 8)
+                case .error(let message):
+                    Text(message)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(Color.orange.opacity(0.9))
+                        .padding(.top, 8)
+                }
+            }
+            .padding(.leading, 20)
+            .frame(width: 280)
+        }
     }
 
     @ViewBuilder
@@ -677,6 +798,7 @@ struct SearchPanelView: View {
                     keyboardHint("Enter", "Play")
                     keyboardHint("Cmd+Enter", "Queue")
                     keyboardHint("↑ ↓", "Move")
+                    keyboardHint("← →", "Nav")
                     keyboardHint("Tab", "Switch")
                 }
 
@@ -732,8 +854,10 @@ struct SearchPanelView: View {
 
         switch viewModel.activeMode {
         case .search:
-            if case .results(let tracks) = viewModel.panelState {
-                return "\(tracks.count) live matches"
+            if case .results(let rows) = viewModel.panelState {
+                let albumCount = rows.filter { if case .album = $0 { return true }; return false }.count
+                let trackCount = rows.filter { if case .track = $0 { return true }; return false }.count
+                return "\(trackCount) tracks, \(albumCount) albums"
             }
             return "Top 8"
         case .recent:
@@ -856,6 +980,10 @@ private struct TrackListRow: View {
         item.track
     }
 
+    private var isAlbumRow: Bool {
+        item.id.hasPrefix("album-")
+    }
+
     var body: some View {
         HStack(spacing: 16) {
             Text(String(format: "%02d", index + 1))
@@ -871,7 +999,7 @@ private struct TrackListRow: View {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
                     .fill(Color.white.opacity(0.055))
                     .overlay {
-                        Image(systemName: "music.note")
+                        Image(systemName: isAlbumRow ? "square.stack" : "music.note")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundStyle(Color.inkFaint)
                     }
@@ -890,6 +1018,10 @@ private struct TrackListRow: View {
                         .font(.system(size: 13, weight: .regular))
                         .foregroundStyle(Color.inkMuted)
                         .lineLimit(1)
+
+                    if isAlbumRow {
+                        albumChip
+                    }
 
                     if let metadata = item.metadata {
                         Text("•")
@@ -923,6 +1055,77 @@ private struct TrackListRow: View {
                 .fill(Color.separator.opacity(0.48))
                 .frame(height: 1),
             alignment: .bottom
+        )
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
+        }
+    }
+
+    private var albumChip: some View {
+        Text("Album")
+            .font(.system(size: 10, weight: .bold))
+            .foregroundStyle(Color.ink)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 2)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(Color.white.opacity(0.10))
+            )
+    }
+
+    private func formatDuration(_ ms: Int) -> String {
+        let totalSeconds = ms / 1000
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%d:%02d", minutes, seconds)
+    }
+}
+
+private struct AlbumTrackRow: View {
+    let item: TrackListItem
+    let index: Int
+    let isSelected: Bool
+
+    @State private var isHovered = false
+
+    private var track: SpotifyTrack {
+        item.track
+    }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            Text(String(format: "%02d", index + 1))
+                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                .foregroundStyle(isSelected ? Color.ink : Color.inkFaint)
+                .frame(width: 22, alignment: .leading)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(track.name)
+                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                    .foregroundStyle(Color.ink)
+                    .lineLimit(1)
+
+                Text(track.artistLine)
+                    .font(.system(size: 11, weight: .regular))
+                    .foregroundStyle(Color.inkMuted)
+                    .lineLimit(1)
+            }
+
+            Spacer(minLength: 6)
+
+            if let duration = track.durationMs {
+                Text(formatDuration(duration))
+                    .font(.system(size: 11, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.inkFaint)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 7)
+        .background(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .fill(isSelected ? Color.white.opacity(0.065) : isHovered ? Color.white.opacity(0.030) : Color.clear)
         )
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {

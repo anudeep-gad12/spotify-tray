@@ -29,6 +29,8 @@ final class SearchViewModel: ObservableObject {
     }
     @Published private(set) var activeMode: SearchPanelMode = .search
     @Published private(set) var selectedIndex = 0
+    @Published private(set) var focusMode: SearchFocusMode = .mainList
+    @Published private(set) var albumTrackSelectedIndex = 0
     @Published private(set) var panelState: SearchPanelState = .helper
     @Published private(set) var recentState: TrackCollectionState = .idle
     @Published private(set) var queueState: TrackCollectionState = .idle
@@ -56,7 +58,9 @@ final class SearchViewModel: ObservableObject {
     private var nowPlayingTask: Task<Void, Never>?
     private var recentTask: Task<Void, Never>?
     private var queueTask: Task<Void, Never>?
-    private var currentResults: [SpotifyTrack] = []
+    @Published private(set) var selectedAlbum: SpotifyAlbumItem?
+    @Published private(set) var albumTracksState: TrackCollectionState = .idle
+    private var currentResults: [SearchResultRow] = []
     private let debounceDelayMs: UInt64 = 400
 
     init(apiClient: SpotifyAPIClient, redirectURI: String) {
@@ -65,7 +69,13 @@ final class SearchViewModel: ObservableObject {
     }
 
     var canMoveSelection: Bool {
-        !activeItems.isEmpty
+        switch focusMode {
+        case .mainList:
+            return !activeItems.isEmpty
+        case .albumDetail:
+            if case .loaded(let items) = albumTracksState { return !items.isEmpty }
+            return false
+        }
     }
 
     var canSwitchModes: Bool {
@@ -78,7 +88,25 @@ final class SearchViewModel: ObservableObject {
     }
 
     var searchItems: [TrackListItem] {
-        currentResults.map { TrackListItem(track: $0) }
+        currentResults.map { row in
+            switch row {
+            case .track(let track):
+                return TrackListItem(track: track)
+            case .album(let album):
+                return TrackListItem(
+                    id: "album-\(album.id)",
+                    track: SpotifyTrack(
+                        id: album.id,
+                        name: album.name,
+                        artists: album.artists,
+                        album: SpotifyAlbum(name: album.name, images: album.images),
+                        uri: album.uri,
+                        durationMs: nil
+                    ),
+                    metadata: "Album · \(album.totalTracks ?? 0) tracks"
+                )
+            }
+        }
     }
 
     func prepareForPresentation() {
@@ -173,9 +201,15 @@ final class SearchViewModel: ObservableObject {
     }
 
     func moveSelection(by offset: Int) {
-        let count = activeItems.count
-        guard count > 0 else { return }
-        selectedIndex = max(0, min(count - 1, selectedIndex + offset))
+        switch focusMode {
+        case .mainList:
+            let count = activeItems.count
+            guard count > 0 else { return }
+            selectedIndex = max(0, min(count - 1, selectedIndex + offset))
+        case .albumDetail:
+            guard case .loaded(let items) = albumTracksState, !items.isEmpty else { return }
+            albumTrackSelectedIndex = max(0, min(items.count - 1, albumTrackSelectedIndex + offset))
+        }
     }
 
     func select(index: Int) {
@@ -183,14 +217,105 @@ final class SearchViewModel: ObservableObject {
         selectedIndex = index
     }
 
+    func navigateIntoAlbum() {
+        guard focusMode == .mainList,
+              case .results = panelState,
+              let album = selectedRowAlbum else { return }
+        openAlbumDetail(album)
+    }
+
+    func navigateBackFromAlbum() {
+        guard focusMode == .albumDetail else { return }
+        closeAlbumDetail()
+    }
+
     func playSelected() {
-        guard let track = selectedTrack else { return }
-        Task { await onPlayRequested?(track) }
+        switch focusMode {
+        case .mainList:
+            if let album = selectedRowAlbum {
+                openAlbumDetail(album)
+                return
+            }
+            guard let track = selectedTrack else { return }
+            Task { await onPlayRequested?(track) }
+        case .albumDetail:
+            guard case .loaded(let items) = albumTracksState,
+                  items.indices.contains(albumTrackSelectedIndex) else { return }
+            Task { await onPlayRequested?(items[albumTrackSelectedIndex].track) }
+        }
     }
 
     func queueSelected() {
-        guard let track = selectedTrack else { return }
-        Task { await onQueueRequested?(track) }
+        switch focusMode {
+        case .mainList:
+            if selectedRowAlbum != nil {
+                openAlbumDetail(selectedRowAlbum!)
+                return
+            }
+            guard let track = selectedTrack else { return }
+            Task { await onQueueRequested?(track) }
+        case .albumDetail:
+            guard case .loaded(let items) = albumTracksState,
+                  items.indices.contains(albumTrackSelectedIndex) else { return }
+            Task { await onQueueRequested?(items[albumTrackSelectedIndex].track) }
+        }
+    }
+
+    func closeAlbumDetail() {
+        selectedAlbum = nil
+        albumTracksState = .idle
+        albumTrackSelectedIndex = 0
+        focusMode = .mainList
+    }
+
+    private var selectedRowAlbum: SpotifyAlbumItem? {
+        guard activeMode == .search,
+              case .results = panelState,
+              activeItems.indices.contains(selectedIndex) else { return nil }
+        let itemID = activeItems[selectedIndex].id
+        guard itemID.hasPrefix("album-") else { return nil }
+        let albumID = String(itemID.dropFirst(6))
+        for row in currentResults {
+            if case .album(let album) = row, album.id == albumID {
+                return album
+            }
+        }
+        return nil
+    }
+
+    private func openAlbumDetail(_ album: SpotifyAlbumItem) {
+        if selectedAlbum?.id == album.id {
+            closeAlbumDetail()
+            return
+        }
+        selectedAlbum = album
+        albumTracksState = .loading
+        albumTrackSelectedIndex = 0
+        focusMode = .albumDetail
+
+        Task {
+            do {
+                let albumTracks = try await apiClient.albumTracks(albumID: album.id)
+                guard !Task.isCancelled, selectedAlbum?.id == album.id else { return }
+
+                let albumInfo = SpotifyAlbum(name: album.name, images: album.images)
+                let items = albumTracks.map { item in
+                    let track = SpotifyTrack(
+                        id: item.id,
+                        name: item.name,
+                        artists: item.artists,
+                        album: albumInfo,
+                        uri: item.uri,
+                        durationMs: item.durationMs
+                    )
+                    return TrackListItem(track: track)
+                }
+                albumTracksState = items.isEmpty ? .empty : .loaded(items)
+            } catch {
+                guard !Task.isCancelled else { return }
+                albumTracksState = .error(error.localizedDescription)
+            }
+        }
     }
 
     func requestLogin() {
@@ -288,7 +413,12 @@ final class SearchViewModel: ObservableObject {
 extension SearchViewModel {
     private var selectedTrack: SpotifyTrack? {
         guard activeItems.indices.contains(selectedIndex) else { return nil }
-        return activeItems[selectedIndex].track
+        let item = activeItems[selectedIndex]
+        // Album rows are handled by playSelected/queueSelected separately
+        if item.id.hasPrefix("album-") {
+            return nil
+        }
+        return item.track
     }
 
     private var activeItems: [TrackListItem] {
@@ -369,11 +499,20 @@ extension SearchViewModel {
             }
 
             do {
-                let tracks = try await apiClient.searchTracks(query: trimmedQuery)
+                let (tracks, albums) = try await apiClient.searchTracksAndAlbums(query: trimmedQuery)
                 guard !Task.isCancelled else { return }
-                currentResults = tracks
+                var rows: [SearchResultRow] = []
+                for track in tracks {
+                    rows.append(.track(track))
+                }
+                for album in albums {
+                    rows.append(.album(album))
+                }
+                currentResults = rows
+                selectedAlbum = nil
+                albumTracksState = .idle
                 selectedIndex = 0
-                panelState = tracks.isEmpty ? .empty : .results(tracks)
+                panelState = rows.isEmpty ? .empty : .results(rows)
             } catch {
                 guard !Task.isCancelled else { return }
                 currentResults = []

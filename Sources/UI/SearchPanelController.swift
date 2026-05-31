@@ -122,6 +122,12 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
                     return nil
                 }
                 return event
+            case kVK_RightArrow:
+                self.environment.searchViewModel.navigateIntoAlbum()
+                return nil
+            case kVK_LeftArrow:
+                self.environment.searchViewModel.navigateBackFromAlbum()
+                return nil
             case kVK_Return:
                 if self.environment.searchViewModel.canMoveSelection {
                     if event.modifierFlags.contains(.command) {

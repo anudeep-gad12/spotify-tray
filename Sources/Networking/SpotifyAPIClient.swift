@@ -56,12 +56,12 @@ actor SpotifyAPIClient {
         await authManager.authorizationStateForSearch()
     }
 
-    func searchTracks(query: String) async throws -> [SpotifyTrack] {
+    func searchTracksAndAlbums(query: String) async throws -> ([SpotifyTrack], [SpotifyAlbumItem]) {
         let token = try await authManager.ensureAuthorized()
         var components = URLComponents(string: "https://api.spotify.com/v1/search")!
         components.queryItems = [
             URLQueryItem(name: "q", value: query),
-            URLQueryItem(name: "type", value: "track"),
+            URLQueryItem(name: "type", value: "track,album"),
             URLQueryItem(name: "limit", value: "8")
         ]
 
@@ -70,7 +70,23 @@ actor SpotifyAPIClient {
             method: "GET",
             token: token.accessToken
         )
-        return response.tracks.items
+        return (response.tracks?.items ?? [], response.albums?.items ?? [])
+    }
+
+    func albumTracks(albumID: String) async throws -> [SpotifyAlbumTrackItem] {
+        let token = try await authManager.ensureAuthorized()
+        let url = URL(string: "https://api.spotify.com/v1/albums/\(albumID)/tracks")!
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: true)!
+        components.queryItems = [
+            URLQueryItem(name: "limit", value: "50")
+        ]
+
+        let response: SpotifyAlbumTracksResponse = try await sendJSONRequest(
+            url: components.url!,
+            method: "GET",
+            token: token.accessToken
+        )
+        return response.items
     }
 
     func currentQueue() async throws -> SpotifyQueueResponse {
