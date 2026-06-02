@@ -260,7 +260,7 @@ final class AppEnvironment: ObservableObject {
         do {
             AppLogger.shared.log("play requested track=\(track.id)", category: "playback")
             _ = try await authManager.ensureAuthorized()
-            try await playbackCoordinator.play(track: track)
+            try await performWithAutoLaunch { try await playbackCoordinator.play(track: track) }
             AppLogger.shared.log("play succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Playing \(track.name)", isError: false)
             searchViewModel.refreshNowPlaying()
@@ -279,7 +279,7 @@ final class AppEnvironment: ObservableObject {
         do {
             AppLogger.shared.log("queue requested track=\(track.id)", category: "playback")
             _ = try await authManager.ensureAuthorized()
-            try await playbackCoordinator.queue(track: track)
+            try await performWithAutoLaunch { try await playbackCoordinator.queue(track: track) }
             AppLogger.shared.log("queue succeeded track=\(track.id)", category: "playback")
             searchViewModel.setInlineMessage("Queued \(track.name)", isError: false)
             searchViewModel.refreshNowPlaying()
@@ -330,6 +330,26 @@ final class AppEnvironment: ObservableObject {
             panelController?.show()
         } catch {
             searchViewModel.setInlineMessage(error.localizedDescription)
+        }
+    }
+
+    private func performWithAutoLaunch(_ operation: () async throws -> Void) async throws {
+        do {
+            try await operation()
+        } catch let error as SpotifyAPIError where error == .noDevice {
+            AppLogger.shared.log("no device found, launching Spotify", category: "playback")
+            openSpotify()
+            // Wait up to 10 seconds for Spotify to come online
+            for _ in 0..<20 {
+                try? await Task.sleep(for: .milliseconds(500))
+                let devices = (try? await apiClient.availableDevices()) ?? []
+                if PlaybackCoordinator.preferredDevice(from: devices) != nil {
+                    AppLogger.shared.log("Spotify device appeared, retrying", category: "playback")
+                    try await operation()
+                    return
+                }
+            }
+            throw SpotifyAPIError.noDevice
         }
     }
 }
