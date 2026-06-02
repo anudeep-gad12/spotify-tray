@@ -19,3 +19,4 @@ site/package-lock.json
 site/yarn.lock
 assets/brand/node_modules/
 assets/spotifytray-demo.gif
+.fluxion/

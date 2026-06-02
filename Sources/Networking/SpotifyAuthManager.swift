@@ -184,7 +184,7 @@ final class SpotifyAuthManager: NSObject, @unchecked Sendable {
         let pkce = PKCEPair.generate()
         let state = UUID().uuidString
         let authURL = try authorizationURL(clientID: clientID, state: state, pkce: pkce)
-        AppLogger.shared.log("auth URL created state=\(state)", category: "auth")
+        AppLogger.shared.log("auth URL created", category: "auth")
         let callbackURL = try await beginWebAuthentication(url: authURL)
         AppLogger.shared.log("web auth callback received", category: "auth")
 
@@ -393,7 +393,7 @@ private final class LoopbackCallbackServer: @unchecked Sendable {
 
                     let parts = firstLine.split(separator: " ")
                     guard parts.count >= 2 else {
-                        AppLogger.shared.log("loopback callback malformed request line: \(firstLine)", category: "auth")
+                        AppLogger.shared.log("loopback callback malformed request line", category: "auth")
                         self.finish(.failure(SpotifyAuthError.invalidCallback))
                         connection.cancel()
                         return
@@ -401,7 +401,7 @@ private final class LoopbackCallbackServer: @unchecked Sendable {
 
                     let target = String(parts[1])
                     let callbackURL = URL(string: "http://\(self.host):\(self.port)\(target)")
-                    AppLogger.shared.log("loopback callback target=\(target)", category: "auth")
+                    AppLogger.shared.log("loopback callback target received", category: "auth")
 
                     let responseHTML = """
                     <html><body style="font-family:-apple-system,system-ui;padding:24px;">
