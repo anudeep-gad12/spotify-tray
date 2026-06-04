@@ -189,6 +189,21 @@ jobs:
             ".build/DerivedData/Build/Products/Release/SpotifyTray.app" \
             "dist/SpotifyTray.app.zip"
 
+      - name: Package README demo
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          set -euo pipefail
+          if ! command -v ffmpeg >/dev/null 2>&1; then
+            brew install ffmpeg
+          fi
+
+          cp site/public/images/spotifytray-demo.mp4 dist/spotifytray-demo.mp4
+          ffmpeg -y \
+            -i site/public/images/spotifytray-demo.mp4 \
+            -vf "fps=12,scale=840:-1:flags=lanczos,split[s0][s1];[s0]palettegen=max_colors=96[p];[s1][p]paletteuse=dither=bayer:bayer_scale=5" \
+            -loop 0 \
+            dist/spotifytray-demo.gif
+
       - name: Create DMG
         run: |
           set -euo pipefail
@@ -306,6 +321,8 @@ jobs:
             dist/SpotifyTray.dmg
             dist/SpotifyTray.app.zip
             dist/appcast.xml
+            dist/spotifytray-demo.mp4
+            dist/spotifytray-demo.gif
           prerelease: ${{ steps.version.outputs.is_prerelease == 'true' }}
 
       - name: Publish appcast to GitHub Pages

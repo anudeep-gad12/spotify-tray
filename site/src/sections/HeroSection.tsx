@@ -1,8 +1,44 @@
+import { useEffect, useRef } from "react";
 import { Download } from "lucide-react";
 import { InstallCommand } from "../components/InstallCommand";
-import { BREW_COMMAND, DOCS_URL, DOWNLOAD_URL, GITHUB_URL } from "../constants";
+import {
+  APP_DEMO_VIDEO_HEIGHT,
+  APP_DEMO_VIDEO_MP4,
+  APP_DEMO_VIDEO_WIDTH,
+  BREW_COMMAND,
+  DOCS_URL,
+  DOWNLOAD_URL,
+  GITHUB_URL,
+} from "../constants";
 
 export function HeroSection() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const play = () => {
+      video.defaultMuted = true;
+      video.muted = true;
+      video.autoplay = true;
+      video.loop = true;
+      video.playsInline = true;
+      void video.play().catch(() => {
+        // Browser blocked autoplay; it will still play when the user interacts.
+      });
+    };
+
+    play();
+    video.addEventListener("loadeddata", play);
+    video.addEventListener("canplay", play);
+
+    return () => {
+      video.removeEventListener("loadeddata", play);
+      video.removeEventListener("canplay", play);
+    };
+  }, []);
+
   return (
     <section id="top" className="hero">
       <div className="heroInner container">
@@ -37,23 +73,23 @@ export function HeroSection() {
           </p>
         </div>
       </div>
-      <div className="heroVisual">
-        <figure className="heroVisualFrame">
-          <picture>
-            <source srcSet="/images/spotifytray-hero.webp" type="image/webp" />
-            <img
-              src="/images/spotifytray-hero.png"
-              alt="SpotifyTray search popup on macOS"
-              width={1568}
-              height={1426}
-              sizes="800px"
-              loading="eager"
-              decoding="async"
-              fetchPriority="high"
-            />
-          </picture>
-        </figure>
-      </div>
+      <figure className="heroShot container">
+        <video
+          ref={videoRef}
+          className="heroMedia"
+          width={APP_DEMO_VIDEO_WIDTH}
+          height={APP_DEMO_VIDEO_HEIGHT}
+          preload="auto"
+          autoPlay
+          muted
+          loop
+          playsInline
+          disablePictureInPicture
+          aria-label="SpotifyTray product demo"
+        >
+          <source src={APP_DEMO_VIDEO_MP4} type="video/mp4" />
+        </video>
+      </figure>
     </section>
   );
 }
