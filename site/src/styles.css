@@ -683,12 +683,194 @@ footer a:hover {
 }
 
 @media (max-width: 640px) {
-  .nav--fixed {
-    padding: 12px 16px;
+  :root {
+    --nav-height: 56px;
   }
 
-  .navLinks a:not(.navCta):not(.navStar):not([href="#capabilities"]) {
+  .container,
+  footer {
+    width: min(var(--max-wide), calc(100% - 32px));
+  }
+
+  .nav--fixed {
+    padding: 10px 16px;
+  }
+
+  .navInner {
+    gap: 12px;
+  }
+
+  .logoLockup {
+    gap: 8px !important;
+  }
+
+  .logoLockup img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .logoLockup span {
+    font-size: 14px;
+  }
+
+  .navLinks {
+    flex-shrink: 0;
+    gap: 0;
+  }
+
+  .navLinks a:not(.navCta) {
     display: none;
+  }
+
+  .hero {
+    padding: 30px 0 56px;
+  }
+
+  .heroTitle {
+    max-width: 15ch;
+    margin-inline: auto;
+    font-size: clamp(30px, 8.8vw, 40px);
+    line-height: 1.08;
+    letter-spacing: -0.035em;
+  }
+
+  .heroLead {
+    max-width: 32em;
+    margin-top: 14px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .heroActions {
+    margin-top: 24px;
+  }
+
+  .btnPrimary--hero {
+    width: 100%;
+    max-width: 320px;
+    min-height: 48px;
+  }
+
+  .heroFoot {
+    margin-top: 18px;
+  }
+
+  .installCmd--hero {
+    display: none;
+  }
+
+  .heroNote {
+    max-width: 25em;
+    margin-inline: auto;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .heroShot {
+    width: min(var(--max-wide), calc(100% - 24px));
+    margin-top: 36px;
+    padding-bottom: 20px;
+  }
+
+  .heroShot::after {
+    left: 14%;
+    right: 14%;
+    height: 30px;
+    filter: blur(7px);
+  }
+
+  .heroShot .heroMedia {
+    border-radius: 12px;
+    filter: drop-shadow(0 24px 42px rgba(0, 0, 0, 0.78));
+  }
+
+  .shortcutsStrip {
+    padding-top: 44px;
+    padding-bottom: 32px;
+  }
+
+  .shortcutsStripHeader {
+    margin-bottom: 22px;
+  }
+
+  .shortcutsStripHeader h2,
+  .capabilityHeader h2,
+  .installPreCtaCopy h2 {
+    font-size: 22px;
+    line-height: 1.16;
+    letter-spacing: -0.025em;
+  }
+
+  .shortcutsStripLead,
+  .capabilityHeader p,
+  .installPreCtaCopy p,
+  .finalCta p {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .shortcutsStripLead {
+    margin-top: 10px;
+  }
+
+  .shortcutsGrid,
+  .capabilityGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .shortcutCard {
+    padding: 14px 16px;
+  }
+
+  .shortcutsFacts {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  .openSourceLine {
+    max-width: 28em;
+    padding-bottom: 36px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .installPreCta,
+  .capabilitySection,
+  .finalCta {
+    padding-top: 56px;
+    padding-bottom: 56px;
+  }
+
+  .installPreCtaCard {
+    padding: 28px 0;
+  }
+
+  .finalCta h2 {
+    font-size: 25px;
+    line-height: 1.14;
+    letter-spacing: -0.03em;
+  }
+
+  .capabilityText h3 {
+    font-size: 15px;
+  }
+
+  .capabilityText p {
+    font-size: 14px;
+  }
+
+  .installCmdInner code {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+@media (max-width: 480px) {
+  .container,
+  footer {
+    width: min(var(--max-wide), calc(100% - 28px));
   }
 
   .hero {
@@ -696,50 +878,24 @@ footer a:hover {
   }
 
   .heroTitle {
-    max-width: none;
-    font-size: clamp(34px, 10vw, 48px);
-    letter-spacing: -0.035em;
+    font-size: clamp(29px, 8.8vw, 36px);
   }
 
-  .shortcutsGrid {
-    grid-template-columns: 1fr;
+  .btnPrimary--hero {
+    font-size: 14px;
   }
 
-  .shortcutsStrip,
-  .installPreCta,
-  .capabilitySection {
-    padding-top: 80px;
-    padding-bottom: 80px;
+  .heroShot {
+    width: calc(100% - 20px);
   }
 
-  .openSourceLine {
-    padding-bottom: 64px;
+  .shortcutsStrip {
+    padding-top: 40px;
+    padding-bottom: 28px;
   }
 
-  .installPreCta {
-    padding-bottom: 80px;
-  }
-
-  .capabilityGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .installCmdInner code {
-    white-space: normal;
-    word-break: break-all;
-  }
-
-  .shortcutsFacts {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-}
-
-@media (max-width: 480px) {
-  .container,
-  .nav,
   footer {
-    width: min(var(--max-wide), calc(100% - 24px));
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
