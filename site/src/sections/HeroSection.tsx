@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Download } from "lucide-react";
 import { InstallCommand } from "../components/InstallCommand";
 import {
@@ -14,28 +14,58 @@ import {
 export function HeroSection() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  // Callback ref: Safari decides whether to allow autoplay when the element is
+  // first created, and React only sets the `muted` *property* (not the DOM
+  // attribute Safari inspects) — by the time useEffect runs, Safari has already
+  // blocked it. Setting muted here, during commit before first paint, gives the
+  // best shot at genuine autoplay without any user interaction.
+  const setVideoRef = useCallback((node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+    if (!node) return;
+    node.defaultMuted = true;
+    node.muted = true;
+    void node.play().catch(() => {
+      // Still blocked (e.g. Low Power Mode); the effect below sets up fallbacks.
+    });
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const play = () => {
-      video.defaultMuted = true;
-      video.muted = true;
-      video.autoplay = true;
-      video.loop = true;
-      video.playsInline = true;
+    // Keep muted asserted in case React re-applied props after the ref ran.
+    video.defaultMuted = true;
+    video.muted = true;
+
+    const tryPlay = () => {
       void video.play().catch(() => {
-        // Browser blocked autoplay; it will still play when the user interacts.
+        // Autoplay blocked; falls back to starting on first interaction below.
       });
     };
 
-    play();
-    video.addEventListener("loadeddata", play);
-    video.addEventListener("canplay", play);
+    tryPlay();
+    video.addEventListener("loadeddata", tryPlay);
+    video.addEventListener("canplay", tryPlay);
+
+    // Fallback for browsers that block muted autoplay (e.g. Low Power Mode):
+    // start playback on the user's first interaction anywhere on the page, so
+    // they never have to find and click the video's own play button.
+    const onFirstInteraction = () => {
+      tryPlay();
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+      window.removeEventListener("scroll", onFirstInteraction);
+    };
+    window.addEventListener("pointerdown", onFirstInteraction, { passive: true });
+    window.addEventListener("keydown", onFirstInteraction);
+    window.addEventListener("scroll", onFirstInteraction, { passive: true });
 
     return () => {
-      video.removeEventListener("loadeddata", play);
-      video.removeEventListener("canplay", play);
+      video.removeEventListener("loadeddata", tryPlay);
+      video.removeEventListener("canplay", tryPlay);
+      window.removeEventListener("pointerdown", onFirstInteraction);
+      window.removeEventListener("keydown", onFirstInteraction);
+      window.removeEventListener("scroll", onFirstInteraction);
     };
   }, []);
 
@@ -75,7 +105,7 @@ export function HeroSection() {
       </div>
       <figure className="heroShot container">
         <video
-          ref={videoRef}
+          ref={setVideoRef}
           className="heroMedia"
           width={APP_DEMO_VIDEO_WIDTH}
           height={APP_DEMO_VIDEO_HEIGHT}

@@ -20,3 +20,4 @@ site/yarn.lock
 assets/brand/node_modules/
 assets/spotifytray-demo.gif
 .fluxion/
+.playwright-mcp/
