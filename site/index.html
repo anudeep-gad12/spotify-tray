@@ -3,6 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      // Apply theme before first paint to avoid a flash.
+      // A saved choice (toggle) always wins; otherwise follow the OS preference.
+      try {
+        var saved = localStorage.getItem("theme")
+        var dark =
+          saved === "dark" ||
+          (saved === null && window.matchMedia("(prefers-color-scheme: dark)").matches)
+        if (dark) document.documentElement.dataset.theme = "dark"
+      } catch (e) {}
+    </script>
     <title>SpotifyTray — A Spotlight for Spotify on macOS</title>
     <meta
       name="description"
@@ -20,7 +31,7 @@
       name="twitter:description"
       content="Search, play, queue, and control Spotify from a fast menu bar popup on macOS."
     />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#f7f7f4" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
