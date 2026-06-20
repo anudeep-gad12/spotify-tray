@@ -672,12 +672,17 @@ struct SearchPanelView: View {
                 .font(.system(size: 15, weight: .medium))
                 .foregroundStyle(Color.inkSecondary)
 
-            VStack(spacing: 0) {
-                ForEach(0..<5, id: \.self) { index in
-                    SkeletonTrackRow(index: index)
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    ForEach(0..<5, id: \.self) { index in
+                        SkeletonTrackRow(index: index)
+                    }
                 }
             }
+            .scrollDisabled(true)
+            .scrollIndicators(.hidden)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private func trackList(_ items: [TrackListItem]) -> some View {
