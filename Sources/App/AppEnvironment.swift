@@ -6,6 +6,7 @@ import Sparkle
 final class AppEnvironment: ObservableObject {
     @Published var launchAtLoginEnabled = false
 
+    let appearanceStore: AppearancePreferenceStore
     let configuration: AppConfiguration
     let clientConfigurationStore: ClientConfigurationStore
     let authManager: SpotifyAuthManager
@@ -23,6 +24,7 @@ final class AppEnvironment: ObservableObject {
     private weak var statusBarController: StatusBarController?
 
     init() {
+        appearanceStore = AppearancePreferenceStore()
         let configuration = AppConfiguration.load()
         let clientConfigurationStore = ClientConfigurationStore(bundledClientID: configuration.bundledSpotifyClientID)
         self.configuration = configuration
@@ -243,6 +245,11 @@ final class AppEnvironment: ObservableObject {
         } catch {
             searchViewModel.setInlineMessage(error.localizedDescription)
         }
+    }
+
+    func setAppearance(_ preference: AppearancePreference) {
+        appearanceStore.setPreference(preference)
+        statusBarController?.refreshMenu()
     }
 
     func signOut() {

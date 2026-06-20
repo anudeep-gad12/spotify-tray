@@ -7,7 +7,10 @@ struct SearchPanelView: View {
     }
 
     @ObservedObject var viewModel: SearchViewModel
+    @ObservedObject var appearanceStore: AppearancePreferenceStore
+    let onAppearanceChanged: (AppearancePreference) -> Void
     @FocusState private var focusedField: FocusField?
+    @State private var isAppearanceMenuHovered = false
 
     var body: some View {
         ZStack {
@@ -42,14 +45,15 @@ struct SearchPanelView: View {
             RoundedRectangle(cornerRadius: 30, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.14), Color.white.opacity(0.045)],
+                        colors: [Color.overlayInk.opacity(0.14), Color.overlayInk.opacity(0.045)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
                     lineWidth: 1
                 )
         )
-        .shadow(color: .black.opacity(0.70), radius: 54, y: 26)
+        .shadow(color: Color.panelShadow, radius: 54, y: 26)
+        .preferredColorScheme(appearanceStore.preference.preferredColorScheme)
         .onAppear {
             requestFocus()
         }
@@ -76,7 +80,7 @@ struct SearchPanelView: View {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.white.opacity(0.022), Color.clear, Color.black.opacity(0.18)],
+                        colors: [Color.overlayInk.opacity(0.022), Color.clear, Color.panelShade],
                         startPoint: .top,
                         endPoint: .bottom
                     )
@@ -112,6 +116,8 @@ struct SearchPanelView: View {
             HStack(spacing: 12) {
                 openSpotifyButton
 
+                appearanceMenu
+
                 compactPill("Cmd+Shift+Space")
 
                 HStack(spacing: 6) {
@@ -125,6 +131,47 @@ struct SearchPanelView: View {
                 .foregroundStyle(Color.inkMuted)
             }
         }
+    }
+
+    private var appearanceMenu: some View {
+        Menu {
+            Picker("Theme", selection: appearanceSelection) {
+                Label("Light", systemImage: AppearancePreference.light.symbolName)
+                    .tag(AppearancePreference.light)
+                Label("Dark", systemImage: AppearancePreference.dark.symbolName)
+                    .tag(AppearancePreference.dark)
+                Label("System", systemImage: AppearancePreference.system.symbolName)
+                    .tag(AppearancePreference.system)
+            }
+            .pickerStyle(.inline)
+        } label: {
+            Image(systemName: appearanceStore.preference.symbolName)
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(isAppearanceMenuHovered ? Color.ink : Color.inkMuted)
+                .frame(width: 32, height: 32)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(isAppearanceMenuHovered ? Color.overlayInk.opacity(0.055) : Color.clear)
+                )
+                .contentShape(Rectangle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .onHover { hovering in
+            withAnimation(.easeInOut(duration: 0.12)) {
+                isAppearanceMenuHovered = hovering
+            }
+        }
+        .help("Theme: \(appearanceStore.preference.title)")
+        .accessibilityLabel("Theme: \(appearanceStore.preference.title)")
+    }
+
+    private var appearanceSelection: Binding<AppearancePreference> {
+        Binding(
+            get: { appearanceStore.preference },
+            set: { onAppearanceChanged($0) }
+        )
     }
 
     private var openSpotifyButton: some View {
@@ -143,7 +190,7 @@ struct SearchPanelView: View {
             .padding(.vertical, 5)
             .background(
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.045))
+                    .fill(Color.overlayInk.opacity(0.045))
             )
             .overlay(
                 Capsule(style: .continuous)
@@ -225,7 +272,7 @@ struct SearchPanelView: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(viewModel.inlineMessageIsError ? Color.orange.opacity(0.10) : Color.white.opacity(0.035))
+                .fill(viewModel.inlineMessageIsError ? Color.orange.opacity(0.10) : Color.overlayInk.opacity(0.035))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -300,7 +347,7 @@ struct SearchPanelView: View {
                             .scaledToFill()
                     } placeholder: {
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
-                            .fill(Color.white.opacity(0.055))
+                            .fill(Color.overlayInk.opacity(0.055))
                             .overlay {
                                 Image(systemName: "square.stack")
                                     .font(.system(size: 16, weight: .medium))
@@ -418,7 +465,7 @@ struct SearchPanelView: View {
                     .scaledToFill()
             } placeholder: {
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color.white.opacity(0.055))
+                    .fill(Color.overlayInk.opacity(0.055))
                     .overlay {
                         Image(systemName: "music.note")
                             .font(.system(size: 18, weight: .medium))
@@ -480,7 +527,7 @@ struct SearchPanelView: View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
                 Rectangle()
-                    .fill(Color.white.opacity(0.090))
+                    .fill(Color.overlayInk.opacity(0.090))
                     .frame(height: 2)
 
                 if let progressFraction {
@@ -614,7 +661,7 @@ struct SearchPanelView: View {
             .padding(.horizontal, 18)
             .padding(.vertical, 12)
             .background(primaryButtonBackground)
-            .foregroundStyle(Color.black.opacity(0.86))
+            .foregroundStyle(Color.onPrimary)
             .font(.system(size: 14, weight: .bold))
         }
     }
@@ -664,11 +711,11 @@ struct SearchPanelView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Text("Bring your own Spotify app")
                     .font(.system(size: 23, weight: .black, design: .rounded))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(Color.ink)
 
                 Text("Create a Spotify developer app, add the redirect below, then paste its Client ID here. The value stays local to this Mac.")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.62))
+                    .foregroundStyle(Color.inkMuted)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -681,7 +728,7 @@ struct SearchPanelView: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Spotify Client ID")
                     .font(.system(size: 12, weight: .black))
-                    .foregroundStyle(Color.white.opacity(0.70))
+                    .foregroundStyle(Color.inkSecondary)
                     .textCase(.uppercase)
                     .tracking(1.3)
 
@@ -694,11 +741,11 @@ struct SearchPanelView: View {
                     .padding(.vertical, 14)
                     .background(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .fill(Color.white.opacity(0.035))
+                            .fill(Color.overlayInk.opacity(0.035))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 18, style: .continuous)
-                            .stroke(Color.white.opacity(0.085), lineWidth: 1)
+                            .stroke(Color.overlayInk.opacity(0.085), lineWidth: 1)
                     )
             }
 
@@ -710,7 +757,7 @@ struct SearchPanelView: View {
                 .padding(.horizontal, 18)
                 .padding(.vertical, 12)
                 .background(primaryButtonBackground)
-                .foregroundStyle(Color.black.opacity(0.86))
+                .foregroundStyle(Color.onPrimary)
                 .font(.system(size: 14, weight: .bold))
 
                 if viewModel.hasSavedClientID {
@@ -722,9 +769,9 @@ struct SearchPanelView: View {
                     .padding(.vertical, 12)
                     .background(
                         Capsule(style: .continuous)
-                            .fill(Color.white.opacity(0.065))
+                            .fill(Color.overlayInk.opacity(0.065))
                     )
-                    .foregroundStyle(Color.white.opacity(0.84))
+                    .foregroundStyle(Color.ink)
                     .font(.system(size: 14, weight: .bold))
                 }
             }
@@ -741,7 +788,7 @@ struct SearchPanelView: View {
                 .frame(width: 28, height: 28)
                 .background(
                     Circle()
-                        .fill(Color.white.opacity(0.055))
+                        .fill(Color.overlayInk.opacity(0.055))
                 )
                 .overlay(
                     Circle()
@@ -763,11 +810,11 @@ struct SearchPanelView: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.white.opacity(0.026))
+                .fill(Color.overlayInk.opacity(0.026))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(Color.white.opacity(0.065), lineWidth: 1)
+                .stroke(Color.overlayInk.opacity(0.065), lineWidth: 1)
         )
     }
 
@@ -997,7 +1044,7 @@ private struct TrackListRow: View {
                     .scaledToFill()
             } placeholder: {
                 RoundedRectangle(cornerRadius: 9, style: .continuous)
-                    .fill(Color.white.opacity(0.055))
+                    .fill(Color.overlayInk.opacity(0.055))
                     .overlay {
                         Image(systemName: isAlbumRow ? "square.stack" : "music.note")
                             .font(.system(size: 12, weight: .medium))
@@ -1048,7 +1095,7 @@ private struct TrackListRow: View {
         .padding(.vertical, 10)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(isSelected ? Color.white.opacity(0.065) : isHovered ? Color.white.opacity(0.030) : Color.clear)
+                .fill(isSelected ? Color.overlayInk.opacity(0.065) : isHovered ? Color.overlayInk.opacity(0.030) : Color.clear)
         )
         .overlay(
             Rectangle()
@@ -1071,7 +1118,7 @@ private struct TrackListRow: View {
             .padding(.vertical, 2)
             .background(
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.10))
+                    .fill(Color.overlayInk.opacity(0.10))
             )
     }
 
@@ -1125,7 +1172,7 @@ private struct AlbumTrackRow: View {
         .padding(.vertical, 7)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(isSelected ? Color.white.opacity(0.065) : isHovered ? Color.white.opacity(0.030) : Color.clear)
+                .fill(isSelected ? Color.overlayInk.opacity(0.065) : isHovered ? Color.overlayInk.opacity(0.030) : Color.clear)
         )
         .onHover { hovering in
             withAnimation(.easeInOut(duration: 0.15)) {
@@ -1153,23 +1200,23 @@ private struct SkeletonTrackRow: View {
                 .frame(width: 28, alignment: .leading)
 
             RoundedRectangle(cornerRadius: 9, style: .continuous)
-                .fill(Color.white.opacity(0.055))
+                .fill(Color.overlayInk.opacity(0.055))
                 .frame(width: 40, height: 40)
 
             VStack(alignment: .leading, spacing: 7) {
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.075))
+                    .fill(Color.overlayInk.opacity(0.075))
                     .frame(width: 230, height: 10)
 
                 Capsule(style: .continuous)
-                    .fill(Color.white.opacity(0.045))
+                    .fill(Color.overlayInk.opacity(0.045))
                     .frame(width: 130, height: 8)
             }
 
             Spacer(minLength: 0)
 
             Capsule(style: .continuous)
-                .fill(Color.white.opacity(0.045))
+                .fill(Color.overlayInk.opacity(0.045))
                 .frame(width: 34, height: 9)
         }
         .padding(.horizontal, 10)
@@ -1210,18 +1257,85 @@ private struct PanelGrid: View {
                 y += step
             }
 
-            context.stroke(path, with: .color(Color.white.opacity(0.045)), lineWidth: 0.5)
+            context.stroke(path, with: .color(Color.overlayInk.opacity(0.045)), lineWidth: 0.5)
+        }
+    }
+}
+
+private extension AppearancePreference {
+    var symbolName: String {
+        switch self {
+        case .system:
+            return "display"
+        case .light:
+            return "sun.max"
+        case .dark:
+            return "moon"
+        }
+    }
+
+    var preferredColorScheme: ColorScheme? {
+        switch self {
+        case .system:
+            return nil
+        case .light:
+            return .light
+        case .dark:
+            return .dark
         }
     }
 }
 
 private extension Color {
-    static let panelCanvas = Color(nsColor: NSColor(calibratedRed: 0.020, green: 0.021, blue: 0.024, alpha: 1.0))
-    static let panelSurface = Color(nsColor: NSColor(calibratedRed: 0.041, green: 0.043, blue: 0.048, alpha: 1.0))
-    static let ink = Color(nsColor: NSColor(calibratedRed: 0.935, green: 0.925, blue: 0.895, alpha: 1.0))
-    static let inkSecondary = Color(nsColor: NSColor(calibratedRed: 0.720, green: 0.710, blue: 0.680, alpha: 1.0))
-    static let inkMuted = Color(nsColor: NSColor(calibratedRed: 0.520, green: 0.515, blue: 0.490, alpha: 1.0))
-    static let inkFaint = Color(nsColor: NSColor(calibratedRed: 0.390, green: 0.390, blue: 0.370, alpha: 1.0))
-    static let separator = Color.white.opacity(0.085)
+    static let panelCanvas = adaptive(
+        light: NSColor(srgbRed: 0.969, green: 0.969, blue: 0.957, alpha: 1.0),
+        dark: NSColor(srgbRed: 0.020, green: 0.021, blue: 0.024, alpha: 1.0)
+    )
+    static let panelSurface = adaptive(
+        light: NSColor(srgbRed: 0.949, green: 0.945, blue: 0.929, alpha: 1.0),
+        dark: NSColor(srgbRed: 0.041, green: 0.043, blue: 0.048, alpha: 1.0)
+    )
+    static let ink = adaptive(
+        light: NSColor(srgbRed: 0.149, green: 0.145, blue: 0.118, alpha: 1.0),
+        dark: NSColor(srgbRed: 0.935, green: 0.925, blue: 0.895, alpha: 1.0)
+    )
+    static let inkSecondary = adaptive(
+        light: NSColor(srgbRed: 0.361, green: 0.349, blue: 0.310, alpha: 1.0),
+        dark: NSColor(srgbRed: 0.720, green: 0.710, blue: 0.680, alpha: 1.0)
+    )
+    static let inkMuted = adaptive(
+        light: NSColor(srgbRed: 0.541, green: 0.522, blue: 0.478, alpha: 1.0),
+        dark: NSColor(srgbRed: 0.520, green: 0.515, blue: 0.490, alpha: 1.0)
+    )
+    static let inkFaint = adaptive(
+        light: NSColor(srgbRed: 0.650, green: 0.630, blue: 0.585, alpha: 1.0),
+        dark: NSColor(srgbRed: 0.390, green: 0.390, blue: 0.370, alpha: 1.0)
+    )
+    static let overlayInk = adaptive(
+        light: NSColor(srgbRed: 0.149, green: 0.145, blue: 0.118, alpha: 1.0),
+        dark: .white
+    )
+    static let onPrimary = adaptive(
+        light: NSColor(srgbRed: 0.969, green: 0.969, blue: 0.957, alpha: 1.0),
+        dark: NSColor(white: 0.0, alpha: 0.86)
+    )
+    static let panelShade = adaptive(
+        light: NSColor(srgbRed: 0.149, green: 0.145, blue: 0.118, alpha: 0.04),
+        dark: NSColor(white: 0.0, alpha: 0.18)
+    )
+    static let panelShadow = adaptive(
+        light: NSColor(srgbRed: 0.149, green: 0.145, blue: 0.118, alpha: 0.18),
+        dark: NSColor(white: 0.0, alpha: 0.70)
+    )
+    static let separator = adaptive(
+        light: NSColor(srgbRed: 0.149, green: 0.145, blue: 0.118, alpha: 0.12),
+        dark: NSColor(white: 1.0, alpha: 0.085)
+    )
     static let playingDot = Color(nsColor: NSColor(calibratedRed: 0.337, green: 0.827, blue: 0.392, alpha: 1.0))
+
+    private static func adaptive(light: NSColor, dark: NSColor) -> Color {
+        Color(nsColor: NSColor(name: nil) { appearance in
+            appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua ? dark : light
+        })
+    }
 }

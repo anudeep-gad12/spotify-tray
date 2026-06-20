@@ -46,6 +46,7 @@ final class StatusBarController: NSObject {
             action: #selector(toggleLaunchAtLogin),
             state: environment.launchAtLoginEnabled ? .on : .off
         ))
+        menu.addItem(makeAppearanceItem())
         if environment.canUseSparkleUpdater {
             menu.addItem(.separator())
             menu.addItem(makeItem(title: "Check for Updates…", action: #selector(checkForUpdates)))
@@ -53,6 +54,34 @@ final class StatusBarController: NSObject {
         menu.addItem(.separator())
         menu.addItem(makeItem(title: "Quit SpotifyTray", action: #selector(quit), keyEquivalent: "q"))
         statusItem.menu = menu
+    }
+
+    private func makeAppearanceItem() -> NSMenuItem {
+        let item = NSMenuItem(title: "Appearance", action: nil, keyEquivalent: "")
+        let submenu = NSMenu(title: "Appearance")
+
+        submenu.addItem(makeItem(
+            title: AppearancePreference.light.title,
+            action: #selector(useLightAppearance),
+            state: appearanceState(for: .light)
+        ))
+        submenu.addItem(makeItem(
+            title: AppearancePreference.dark.title,
+            action: #selector(useDarkAppearance),
+            state: appearanceState(for: .dark)
+        ))
+        submenu.addItem(makeItem(
+            title: AppearancePreference.system.title,
+            action: #selector(useSystemAppearance),
+            state: appearanceState(for: .system)
+        ))
+
+        item.submenu = submenu
+        return item
+    }
+
+    private func appearanceState(for preference: AppearancePreference) -> NSControl.StateValue {
+        environment.appearanceStore.preference == preference ? .on : .off
     }
 
     private func makeItem(
@@ -89,6 +118,18 @@ final class StatusBarController: NSObject {
 
     @objc private func toggleLaunchAtLogin() {
         environment.toggleLaunchAtLogin()
+    }
+
+    @objc private func useSystemAppearance() {
+        environment.setAppearance(.system)
+    }
+
+    @objc private func useLightAppearance() {
+        environment.setAppearance(.light)
+    }
+
+    @objc private func useDarkAppearance() {
+        environment.setAppearance(.dark)
     }
 
     @objc private func checkForUpdates() {

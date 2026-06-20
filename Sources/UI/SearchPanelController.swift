@@ -38,7 +38,11 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         panel.delegate = nil
 
         let rootView = SearchPanelView(
-            viewModel: environment.searchViewModel
+            viewModel: environment.searchViewModel,
+            appearanceStore: environment.appearanceStore,
+            onAppearanceChanged: { [weak environment] preference in
+                environment?.setAppearance(preference)
+            }
         )
         let hostingController = NSHostingController(rootView: rootView)
         hostingController.view.wantsLayer = true
