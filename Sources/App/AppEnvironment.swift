@@ -20,8 +20,13 @@ final class AppEnvironment: ObservableObject {
         ApplicationInstallLocation.canUseSparkleUpdater
     }
 
+    var isPlaybackRequestInProgress: Bool {
+        playbackRequestCount > 0
+    }
+
     private weak var panelController: SearchPanelController?
     private weak var statusBarController: StatusBarController?
+    private var playbackRequestCount = 0
 
     init() {
         appearanceStore = AppearancePreferenceStore()
@@ -57,6 +62,9 @@ final class AppEnvironment: ObservableObject {
         }
         searchViewModel.onQueueRequested = { [weak self] track in
             await self?.queue(track: track)
+        }
+        searchViewModel.onSeekRequested = { [weak self] positionMS in
+            await self?.seek(to: positionMS)
         }
         searchViewModel.onLoginRequested = { [weak self] in
             self?.loginReconnect()
@@ -264,6 +272,14 @@ final class AppEnvironment: ObservableObject {
     }
 
     private func play(track: SpotifyTrack) async {
+        guard !isPlaybackRequestInProgress else {
+            AppLogger.shared.log("play ignored because another playback request is in progress track=\(track.id)", category: "playback")
+            return
+        }
+
+        playbackRequestCount += 1
+        defer { playbackRequestCount -= 1 }
+
         do {
             AppLogger.shared.log("play requested track=\(track.id)", category: "playback")
             _ = try await authManager.ensureAuthorized()
@@ -283,6 +299,9 @@ final class AppEnvironment: ObservableObject {
     }
 
     private func queue(track: SpotifyTrack) async {
+        playbackRequestCount += 1
+        defer { playbackRequestCount -= 1 }
+
         do {
             AppLogger.shared.log("queue requested track=\(track.id)", category: "playback")
             _ = try await authManager.ensureAuthorized()
@@ -302,6 +321,23 @@ final class AppEnvironment: ObservableObject {
             searchViewModel.setInlineMessage(error.localizedDescription)
             panelController?.show()
             focusSearchField()
+        }
+    }
+
+    private func seek(to positionMS: Int) async {
+        playbackRequestCount += 1
+        defer { playbackRequestCount -= 1 }
+
+        do {
+            AppLogger.shared.log("seek requested positionMS=\(positionMS)", category: "playback")
+            _ = try await authManager.ensureAuthorized()
+            try await performWithAutoLaunch { try await playbackCoordinator.seek(to: positionMS) }
+            AppLogger.shared.log("seek succeeded positionMS=\(positionMS)", category: "playback")
+            searchViewModel.refreshNowPlaying()
+        } catch {
+            AppLogger.shared.log("seek failed positionMS=\(positionMS) error=\(error.localizedDescription)", category: "playback")
+            searchViewModel.setInlineMessage(error.localizedDescription)
+            panelController?.show()
         }
     }
 
@@ -344,19 +380,64 @@ final class AppEnvironment: ObservableObject {
         do {
             try await operation()
         } catch let error as SpotifyAPIError where error == .noDevice {
-            AppLogger.shared.log("no device found, launching Spotify", category: "playback")
-            openSpotify()
-            // Wait up to 10 seconds for Spotify to come online
-            for _ in 0..<20 {
-                try? await Task.sleep(for: .milliseconds(500))
-                let devices = (try? await apiClient.availableDevices()) ?? []
-                if PlaybackCoordinator.preferredDevice(from: devices) != nil {
-                    AppLogger.shared.log("Spotify device appeared, retrying", category: "playback")
+            let spotifyWasRunning = isSpotifyRunning
+            AppLogger.shared.log("no device found spotifyRunning=\(spotifyWasRunning)", category: "playback")
+
+            if spotifyWasRunning {
+                searchViewModel.setInlineMessage(
+                    "Spotify is reconnecting its playback device…",
+                    isError: false,
+                    isLoading: true
+                )
+            } else {
+                searchViewModel.setInlineMessage(
+                    "Opening Spotify and waiting for playback…",
+                    isError: false,
+                    isLoading: true
+                )
+            }
+            // Sending a non-activating reopen event also wakes an already-running
+            // Spotify client whose Connect device has fallen off the Web API.
+            launchSpotifyInBackground()
+
+            // Retry the actual command so transient device-list and playback-state
+            // inconsistencies recover without activating Spotify or losing panel focus.
+            for attempt in 1...20 {
+                try await Task.sleep(for: .milliseconds(500))
+                do {
                     try await operation()
+                    AppLogger.shared.log("Spotify playback command recovered attempt=\(attempt)", category: "playback")
                     return
+                } catch let retryError as SpotifyAPIError where retryError == .noDevice {
+                    continue
                 }
             }
+            if spotifyWasRunning {
+                throw SpotifyAPIError.message("Spotify is open but hasn’t exposed a playback device yet.")
+            }
             throw SpotifyAPIError.noDevice
+        }
+    }
+
+    private var isSpotifyRunning: Bool {
+        !NSRunningApplication.runningApplications(withBundleIdentifier: "com.spotify.client").isEmpty
+    }
+
+    private func launchSpotifyInBackground() {
+        guard let applicationURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.spotify.client") else {
+            AppLogger.shared.log("Spotify application URL unavailable; using URL scheme", category: "playback")
+            openSpotify()
+            return
+        }
+
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = false
+        NSWorkspace.shared.openApplication(at: applicationURL, configuration: configuration) { application, error in
+            if let error {
+                AppLogger.shared.log("background Spotify launch failed error=\(error.localizedDescription)", category: "playback")
+            } else {
+                AppLogger.shared.log("background Spotify launch requested running=\(application != nil)", category: "playback")
+            }
         }
     }
 }

@@ -47,4 +47,32 @@ final class PlaybackCoordinatorTests: XCTestCase {
             XCTAssertEqual(error, .restrictedDevice)
         }
     }
+
+    func testResolvePlaybackDeviceUsesCurrentComputerWhenDevicesListIsEmpty() async throws {
+        let configuration = AppConfiguration(bundledSpotifyClientID: "test", callbackScheme: "spotifytray")
+        let keychain = KeychainStore(service: "mock")
+        let authManager = SpotifyAuthManager(
+            configuration: configuration,
+            keychain: keychain,
+            clientIDProvider: { "test" },
+            session: .shared
+        )
+        let client = SpotifyAPIClient(authManager: authManager)
+        let coordinator = PlaybackCoordinator(apiClient: client)
+        let currentDevice = SpotifyDevice(
+            id: "current-mac",
+            isActive: true,
+            isRestricted: false,
+            name: "MacBook Pro",
+            type: "Computer"
+        )
+
+        let device = try await coordinator.resolvePlaybackDevice(
+            from: [],
+            currentPlaybackDevice: currentDevice
+        )
+
+        XCTAssertEqual(device.id, "current-mac")
+        XCTAssertTrue(device.isActive)
+    }
 }

@@ -143,10 +143,12 @@ actor SpotifyAPIClient {
         )
     }
 
-    func play(trackURI: String, deviceID: String) async throws {
+    func play(trackURI: String, deviceID: String?) async throws {
         let token = try await authManager.ensureAuthorized()
         var components = URLComponents(string: "https://api.spotify.com/v1/me/player/play")!
-        components.queryItems = [URLQueryItem(name: "device_id", value: deviceID)]
+        if let deviceID {
+            components.queryItems = [URLQueryItem(name: "device_id", value: deviceID)]
+        }
         try await sendEmptyRequest(
             url: components.url!,
             method: "PUT",

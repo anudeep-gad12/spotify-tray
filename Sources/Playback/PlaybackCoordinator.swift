@@ -8,7 +8,11 @@ actor PlaybackCoordinator {
     }
 
     func play(track: SpotifyTrack) async throws {
-        let device = try await resolvePlaybackDevice()
+        guard let device = try await findPlaybackDevice() else {
+            AppLogger.shared.log("device discovery empty; trying Spotify active-device playback", category: "playback")
+            try await apiClient.play(trackURI: track.uri, deviceID: nil)
+            return
+        }
         if !device.isActive {
             try await apiClient.transferPlayback(deviceID: device.id)
         }
@@ -73,16 +77,55 @@ actor PlaybackCoordinator {
         }
     }
 
-    func resolvePlaybackDevice(from devices: [SpotifyDevice]) throws -> AddressableSpotifyDevice {
-        guard let device = PlaybackCoordinator.preferredDevice(from: devices) else {
+    func seek(to positionMS: Int) async throws {
+        let device = try await resolvePlaybackDevice()
+        if !device.isActive {
+            try await apiClient.transferPlayback(deviceID: device.id)
+        }
+        try await apiClient.seek(positionMS: max(0, positionMS), deviceID: device.id)
+    }
+
+    func resolvePlaybackDevice(
+        from devices: [SpotifyDevice],
+        currentPlaybackDevice: SpotifyDevice? = nil
+    ) throws -> AddressableSpotifyDevice {
+        guard let device = PlaybackCoordinator.preferredDevice(from: devices)
+            ?? PlaybackCoordinator.preferredCurrentDevice(currentPlaybackDevice)
+        else {
             throw SpotifyAPIError.noDevice
         }
         return try resolvedAddressableDevice(from: device)
     }
 
     private func resolvePlaybackDevice() async throws -> AddressableSpotifyDevice {
+        guard let device = try await findPlaybackDevice() else {
+            throw SpotifyAPIError.noDevice
+        }
+        return device
+    }
+
+    private func findPlaybackDevice() async throws -> AddressableSpotifyDevice? {
         let devices = try await apiClient.availableDevices()
-        return try resolvePlaybackDevice(from: devices)
+        if let device = PlaybackCoordinator.preferredDevice(from: devices) {
+            return try resolvedAddressableDevice(from: device)
+        }
+
+        let playbackDevice = try await apiClient.currentPlaybackState()?.device
+        if let device = PlaybackCoordinator.preferredCurrentDevice(playbackDevice) {
+            AppLogger.shared.log("using current playback device because devices endpoint omitted the Mac", category: "playback")
+            return try resolvedAddressableDevice(from: device)
+        }
+
+        if devices.isEmpty, playbackDevice == nil {
+            AppLogger.shared.log("Spotify device discovery returned no devices or playback state", category: "playback")
+            return nil
+        }
+
+        let summary = devices.map {
+            "type=\($0.type),active=\($0.isActive),restricted=\($0.isRestricted),hasID=\($0.id?.isEmpty == false)"
+        }.joined(separator: ";")
+        AppLogger.shared.log("no addressable Mac device count=\(devices.count) devices=[\(summary)]", category: "playback")
+        throw SpotifyAPIError.noDevice
     }
 
     private func resolvedAddressableDevice(from device: SpotifyDevice?) throws -> AddressableSpotifyDevice {
@@ -113,6 +156,16 @@ actor PlaybackCoordinator {
         }
 
         return addressableDevices.first(where: { $0.type == "Computer" })
+    }
+
+    private static func preferredCurrentDevice(_ device: SpotifyDevice?) -> SpotifyDevice? {
+        guard let device,
+              device.type == "Computer",
+              device.id?.isEmpty == false
+        else {
+            return nil
+        }
+        return device
     }
 }
 

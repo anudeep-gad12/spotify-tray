@@ -30,7 +30,7 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         panel.isFloatingPanel = true
         panel.level = .statusBar
         panel.collectionBehavior = [.moveToActiveSpace, .transient]
-        panel.isMovableByWindowBackground = true
+        panel.isMovableByWindowBackground = false
         panel.hidesOnDeactivate = false
         panel.backgroundColor = .clear
         panel.isOpaque = false
@@ -96,6 +96,10 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
     func windowDidResignKey(_ notification: Notification) {
         if environment.authManager.isInteractiveAuthInProgress {
             AppLogger.shared.log("windowDidResignKey ignored during auth", category: "panel")
+            return
+        }
+        if environment.isPlaybackRequestInProgress {
+            AppLogger.shared.log("windowDidResignKey ignored during playback request", category: "panel")
             return
         }
         AppLogger.shared.log("windowDidResignKey", category: "panel")

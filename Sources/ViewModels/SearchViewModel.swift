@@ -36,14 +36,17 @@ final class SearchViewModel: ObservableObject {
     @Published private(set) var queueState: TrackCollectionState = .idle
     @Published private(set) var inlineMessage: String?
     @Published private(set) var inlineMessageIsError = false
+    @Published private(set) var inlineMessageIsLoading = false
     @Published private(set) var loginInProgress = false
     @Published private(set) var focusRequestID = UUID()
     @Published private(set) var nowPlayingState: NowPlayingState = .hidden
+    @Published private(set) var nowPlayingRefreshInProgress = false
     @Published var setupClientID = ""
     @Published var hasSavedClientID = false
 
     var onPlayRequested: ((SpotifyTrack) async -> Void)?
     var onQueueRequested: ((SpotifyTrack) async -> Void)?
+    var onSeekRequested: ((Int) async -> Void)?
     var onLoginRequested: (() -> Void)?
     var onSaveClientIDRequested: ((String) -> Void)?
     var onClearConfigurationRequested: (() -> Void)?
@@ -56,6 +59,7 @@ final class SearchViewModel: ObservableObject {
     private var searchTask: Task<Void, Never>?
     private var debounceTask: Task<Void, Never>?
     private var nowPlayingTask: Task<Void, Never>?
+    private var nowPlayingRefreshID = UUID()
     private var recentTask: Task<Void, Never>?
     private var queueTask: Task<Void, Never>?
     @Published private(set) var selectedAlbum: SpotifyAlbumItem?
@@ -195,9 +199,10 @@ final class SearchViewModel: ObservableObject {
         setMode(modes[nextIndex])
     }
 
-    func setInlineMessage(_ message: String, isError: Bool = true) {
+    func setInlineMessage(_ message: String, isError: Bool = true, isLoading: Bool = false) {
         inlineMessage = message
         inlineMessageIsError = isError
+        inlineMessageIsLoading = isLoading && !isError
     }
 
     func moveSelection(by offset: Int) {
@@ -327,6 +332,12 @@ final class SearchViewModel: ObservableObject {
         onOpenSpotifyRequested?()
     }
 
+    func requestSeek(to positionMS: Int) {
+        Task {
+            await onSeekRequested?(max(0, positionMS))
+        }
+    }
+
     func retrySearchIfNeeded() {
         guard !query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         performSearch(for: query)
@@ -367,6 +378,7 @@ final class SearchViewModel: ObservableObject {
     func clearMessage() {
         inlineMessage = nil
         inlineMessageIsError = false
+        inlineMessageIsLoading = false
     }
 
     func clearQuery() {
@@ -375,14 +387,32 @@ final class SearchViewModel: ObservableObject {
 
     func refreshNowPlaying() {
         nowPlayingTask?.cancel()
+        let refreshID = UUID()
+        nowPlayingRefreshID = refreshID
 
         guard canShowNowPlaying else {
             nowPlayingState = .hidden
+            nowPlayingRefreshInProgress = false
             return
         }
 
-        nowPlayingState = .loading
+        let isPreservingCurrentContent: Bool
+        if case .showing = nowPlayingState {
+            isPreservingCurrentContent = true
+            nowPlayingRefreshInProgress = true
+        } else {
+            isPreservingCurrentContent = false
+            nowPlayingState = .loading
+            nowPlayingRefreshInProgress = false
+        }
+
         nowPlayingTask = Task {
+            defer {
+                if nowPlayingRefreshID == refreshID {
+                    nowPlayingRefreshInProgress = false
+                }
+            }
+
             do {
                 let playbackState = try await apiClient.currentPlaybackState()
                 guard !Task.isCancelled else { return }
@@ -393,7 +423,9 @@ final class SearchViewModel: ObservableObject {
                 nowPlayingState = .showing(summary)
             } catch {
                 guard !Task.isCancelled else { return }
-                nowPlayingState = .hidden
+                if !isPreservingCurrentContent {
+                    nowPlayingState = .hidden
+                }
             }
         }
     }
@@ -406,6 +438,8 @@ final class SearchViewModel: ObservableObject {
 
     func clearNowPlaying() {
         nowPlayingTask?.cancel()
+        nowPlayingRefreshID = UUID()
+        nowPlayingRefreshInProgress = false
         nowPlayingState = .hidden
     }
 }

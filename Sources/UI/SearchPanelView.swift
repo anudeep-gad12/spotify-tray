@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct SearchPanelView: View {
@@ -11,6 +12,9 @@ struct SearchPanelView: View {
     let onAppearanceChanged: (AppearancePreference) -> Void
     @FocusState private var focusedField: FocusField?
     @State private var isAppearanceMenuHovered = false
+    @State private var seekPreviewFraction: CGFloat?
+    @State private var isSeekHovered = false
+    @State private var isSeekDragging = false
 
     var body: some View {
         ZStack {
@@ -110,6 +114,10 @@ struct SearchPanelView: View {
                     .foregroundStyle(Color.inkMuted)
                     .lineLimit(2)
             }
+            .overlay {
+                WindowDragRegion()
+            }
+            .help("Drag to move SpotifyTray")
 
             Spacer()
 
@@ -261,8 +269,15 @@ struct SearchPanelView: View {
 
     private func inlineMessage(_ message: String) -> some View {
         HStack(spacing: 10) {
-            Image(systemName: viewModel.inlineMessageIsError ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
-                .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange : Color.inkMuted)
+            if viewModel.inlineMessageIsLoading {
+                ProgressView()
+                    .controlSize(.small)
+                    .tint(Color.playingDot)
+                    .frame(width: 16, height: 16)
+            } else {
+                Image(systemName: viewModel.inlineMessageIsError ? "exclamationmark.triangle.fill" : "checkmark.seal.fill")
+                    .foregroundStyle(viewModel.inlineMessageIsError ? Color.orange : Color.inkMuted)
+            }
 
             Text(message)
                 .font(.system(size: 13, weight: .semibold))
@@ -436,7 +451,9 @@ struct SearchPanelView: View {
                 artistLine: "Spotify is syncing what’s on right now.",
                 isPlaying: false,
                 deviceName: nil,
-                progressFraction: nil
+                progressFraction: nil,
+                durationMs: nil,
+                isRefreshing: false
             )
         case .showing(let summary):
             bottomDock(
@@ -445,7 +462,9 @@ struct SearchPanelView: View {
                 artistLine: summary.artistLine,
                 isPlaying: summary.isPlaying,
                 deviceName: summary.deviceName,
-                progressFraction: summary.progressFraction
+                progressFraction: summary.progressFraction,
+                durationMs: summary.durationMs,
+                isRefreshing: viewModel.nowPlayingRefreshInProgress
             )
         }
     }
@@ -456,7 +475,9 @@ struct SearchPanelView: View {
         artistLine: String,
         isPlaying: Bool,
         deviceName: String?,
-        progressFraction: CGFloat?
+        progressFraction: CGFloat?,
+        durationMs: Int?,
+        isRefreshing: Bool
     ) -> some View {
         HStack(spacing: 16) {
             AsyncImage(url: artworkURL) { image in
@@ -475,7 +496,7 @@ struct SearchPanelView: View {
             .frame(width: 72, height: 72)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
-            VStack(alignment: .leading, spacing: 9) {
+            VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 8) {
                     Text("now playing")
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
@@ -488,7 +509,16 @@ struct SearchPanelView: View {
                     Text(isPlaying ? "playing" : "paused")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundStyle(Color.inkMuted)
+
+                    if isRefreshing {
+                        ProgressView()
+                            .controlSize(.mini)
+                            .tint(Color.playingDot)
+                            .frame(width: 10, height: 10)
+                            .transition(.opacity)
+                    }
                 }
+                .animation(.easeOut(duration: 0.14), value: isRefreshing)
 
                 Text(title)
                     .font(.system(size: 17, weight: .semibold))
@@ -500,7 +530,7 @@ struct SearchPanelView: View {
                     .foregroundStyle(Color.inkMuted)
                     .lineLimit(1)
 
-                seekBar(progressFraction)
+                seekBar(progressFraction, durationMs: durationMs)
             }
 
             Spacer(minLength: 0)
@@ -523,22 +553,117 @@ struct SearchPanelView: View {
         .padding(.top, 2)
     }
 
-    private func seekBar(_ progressFraction: CGFloat?) -> some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                Rectangle()
-                    .fill(Color.overlayInk.opacity(0.090))
-                    .frame(height: 2)
+    private func seekBar(_ progressFraction: CGFloat?, durationMs: Int?) -> some View {
+        let displayedFraction = seekPreviewFraction ?? progressFraction ?? 0
+        let displayedPositionMs = durationMs.map { Int(CGFloat($0) * displayedFraction) }
 
-                if let progressFraction {
-                    Rectangle()
-                        .fill(Color.inkSecondary)
-                        .frame(width: geometry.size.width * progressFraction, height: 2)
+        return HStack(spacing: 9) {
+            Text(formatPlaybackTime(displayedPositionMs))
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.inkFaint)
+                .frame(width: 34, alignment: .trailing)
+
+            GeometryReader { geometry in
+                let trackWidth = geometry.size.width
+                let thumbDiameter: CGFloat = 10
+                let progressWidth = trackWidth * displayedFraction
+                let thumbOffset = min(max(progressWidth - thumbDiameter / 2, 0), max(0, trackWidth - thumbDiameter))
+                let tooltipWidth: CGFloat = 48
+                let tooltipOffset = min(max(progressWidth - tooltipWidth / 2, 0), max(0, trackWidth - tooltipWidth))
+                let expanded = isSeekHovered || isSeekDragging
+
+                ZStack(alignment: .leading) {
+                    Capsule(style: .continuous)
+                        .fill(Color.overlayInk.opacity(expanded ? 0.14 : 0.09))
+                        .frame(height: expanded ? 4 : 2)
+
+                    if progressFraction != nil {
+                        Capsule(style: .continuous)
+                            .fill(Color.playingDot.opacity(expanded ? 0.95 : 0.76))
+                            .frame(width: progressWidth, height: expanded ? 4 : 2)
+                    }
+
+                    if progressFraction != nil, expanded || seekPreviewFraction != nil {
+                        Circle()
+                            .fill(Color.ink)
+                            .frame(width: thumbDiameter, height: thumbDiameter)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.panelCanvas.opacity(0.85), lineWidth: 1)
+                            )
+                            .shadow(color: Color.panelShadow.opacity(0.42), radius: 4, y: 2)
+                            .offset(x: thumbOffset)
+                    }
+
+                    if isSeekDragging {
+                        Text(formatPlaybackTime(displayedPositionMs))
+                            .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                            .foregroundStyle(Color.onPrimary)
+                            .frame(width: tooltipWidth)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                    .fill(Color.ink)
+                            )
+                            .shadow(color: Color.panelShadow.opacity(0.55), radius: 7, y: 3)
+                            .offset(x: tooltipOffset, y: -28)
+                            .zIndex(1)
+                    }
                 }
+                .frame(maxHeight: .infinity, alignment: .center)
+                .contentShape(Rectangle())
+                .onHover { hovering in
+                    withAnimation(.easeOut(duration: 0.12)) {
+                        isSeekHovered = hovering
+                    }
+                }
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            guard durationMs != nil, trackWidth > 0 else { return }
+                            isSeekDragging = true
+                            seekPreviewFraction = min(max(value.location.x / trackWidth, 0), 1)
+                        }
+                        .onEnded { value in
+                            guard let durationMs, trackWidth > 0 else {
+                                isSeekDragging = false
+                                return
+                            }
+                            let fraction = min(max(value.location.x / trackWidth, 0), 1)
+                            seekPreviewFraction = fraction
+                            isSeekDragging = false
+                            viewModel.requestSeek(to: Int(CGFloat(durationMs) * fraction))
+
+                            Task { @MainActor in
+                                try? await Task.sleep(for: .seconds(2))
+                                if seekPreviewFraction == fraction {
+                                    seekPreviewFraction = nil
+                                }
+                            }
+                        }
+                )
+                .animation(.easeOut(duration: 0.12), value: expanded)
             }
+            .frame(height: 18)
+
+            Text(formatPlaybackTime(durationMs))
+                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                .foregroundStyle(Color.inkFaint)
+                .frame(width: 34, alignment: .leading)
         }
-        .frame(height: 2)
-        .padding(.top, 2)
+        .frame(height: 18)
+        .help(durationMs == nil ? "Playback position unavailable" : "Click or drag to seek")
+        .onChange(of: progressFraction) {
+            seekPreviewFraction = nil
+        }
+    }
+
+    private func formatPlaybackTime(_ milliseconds: Int?) -> String {
+        guard let milliseconds else { return "--:--" }
+        let totalSeconds = max(0, milliseconds / 1_000)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%d:%02d", minutes, seconds)
     }
 
     @ViewBuilder
@@ -1263,6 +1388,24 @@ private struct PanelGrid: View {
             }
 
             context.stroke(path, with: .color(Color.overlayInk.opacity(0.045)), lineWidth: 0.5)
+        }
+    }
+}
+
+private struct WindowDragRegion: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        DraggableView()
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+
+    private final class DraggableView: NSView {
+        override func mouseDown(with event: NSEvent) {
+            window?.performDrag(with: event)
+        }
+
+        override func resetCursorRects() {
+            addCursorRect(bounds, cursor: .openHand)
         }
     }
 }
