@@ -62,6 +62,7 @@ final class SearchViewModel: ObservableObject {
     private var nowPlayingRefreshID = UUID()
     private var recentTask: Task<Void, Never>?
     private var queueTask: Task<Void, Never>?
+    private var pendingSelectionOffset = 0
     @Published private(set) var selectedAlbum: SpotifyAlbumItem?
     @Published private(set) var albumTracksState: TrackCollectionState = .idle
     private var currentResults: [SearchResultRow] = []
@@ -80,6 +81,18 @@ final class SearchViewModel: ObservableObject {
             if case .loaded(let items) = albumTracksState { return !items.isEmpty }
             return false
         }
+    }
+
+    var canHandleSelectionMovement: Bool {
+        canMoveSelection || activeCollectionIsLoading
+    }
+
+    var canNavigateIntoAlbum: Bool {
+        focusMode == .mainList && selectedRowAlbum != nil
+    }
+
+    var canNavigateBackFromAlbum: Bool {
+        focusMode == .albumDetail
     }
 
     var canSwitchModes: Bool {
@@ -166,6 +179,7 @@ final class SearchViewModel: ObservableObject {
         guard activeMode != mode else { return }
         activeMode = mode
         selectedIndex = 0
+        pendingSelectionOffset = 0
         clearMessage()
 
         switch mode {
@@ -209,10 +223,20 @@ final class SearchViewModel: ObservableObject {
         switch focusMode {
         case .mainList:
             let count = activeItems.count
-            guard count > 0 else { return }
+            guard count > 0 else {
+                if activeCollectionIsLoading {
+                    pendingSelectionOffset = max(0, pendingSelectionOffset + offset)
+                }
+                return
+            }
             selectedIndex = max(0, min(count - 1, selectedIndex + offset))
         case .albumDetail:
-            guard case .loaded(let items) = albumTracksState, !items.isEmpty else { return }
+            guard case .loaded(let items) = albumTracksState, !items.isEmpty else {
+                if activeCollectionIsLoading {
+                    pendingSelectionOffset = max(0, pendingSelectionOffset + offset)
+                }
+                return
+            }
             albumTrackSelectedIndex = max(0, min(items.count - 1, albumTrackSelectedIndex + offset))
         }
     }
@@ -296,6 +320,7 @@ final class SearchViewModel: ObservableObject {
         selectedAlbum = album
         albumTracksState = .loading
         albumTrackSelectedIndex = 0
+        pendingSelectionOffset = 0
         focusMode = .albumDetail
 
         Task {
@@ -316,6 +341,7 @@ final class SearchViewModel: ObservableObject {
                     return TrackListItem(track: track)
                 }
                 albumTracksState = items.isEmpty ? .empty : .loaded(items)
+                albumTrackSelectedIndex = consumePendingSelectionIndex(itemCount: items.count)
             } catch {
                 guard !Task.isCancelled else { return }
                 albumTracksState = .error(error.localizedDescription)
@@ -356,6 +382,7 @@ final class SearchViewModel: ObservableObject {
         recentState = .idle
         queueState = .idle
         selectedIndex = 0
+        pendingSelectionOffset = 0
         nowPlayingState = .hidden
         setupClientID = clientID
         self.hasSavedClientID = hasSavedClientID
@@ -469,6 +496,30 @@ extension SearchViewModel {
         }
     }
 
+    private var activeCollectionIsLoading: Bool {
+        switch focusMode {
+        case .albumDetail:
+            if case .loading = albumTracksState { return true }
+            return false
+        case .mainList:
+            switch activeMode {
+            case .search:
+                if case .loading = panelState { return true }
+            case .recent:
+                if case .loading = recentState { return true }
+            case .queue:
+                if case .loading = queueState { return true }
+            }
+            return false
+        }
+    }
+
+    private func consumePendingSelectionIndex(itemCount: Int) -> Int {
+        defer { pendingSelectionOffset = 0 }
+        guard itemCount > 0 else { return 0 }
+        return min(itemCount - 1, pendingSelectionOffset)
+    }
+
     private func startDebouncedSearch(for query: String) {
         debounceTask?.cancel()
         searchTask?.cancel()
@@ -476,11 +527,22 @@ extension SearchViewModel {
         let trimmedQuery = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedQuery.isEmpty else {
             currentResults = []
+            pendingSelectionOffset = 0
             if activeMode == .search {
                 selectedIndex = 0
                 panelState = isSpotifyConfigured?() == false ? .setupRequired : .helper
             }
             return
+        }
+
+        currentResults = []
+        selectedAlbum = nil
+        albumTracksState = .idle
+        focusMode = .mainList
+        selectedIndex = 0
+        pendingSelectionOffset = 0
+        if isSpotifyConfigured?() != false {
+            panelState = .loading
         }
 
         debounceTask = Task {
@@ -545,7 +607,7 @@ extension SearchViewModel {
                 currentResults = rows
                 selectedAlbum = nil
                 albumTracksState = .idle
-                selectedIndex = 0
+                selectedIndex = consumePendingSelectionIndex(itemCount: rows.count)
                 panelState = rows.isEmpty ? .empty : .results(rows)
             } catch {
                 guard !Task.isCancelled else { return }
@@ -565,6 +627,7 @@ extension SearchViewModel {
         recentTask?.cancel()
         recentState = .loading
         selectedIndex = 0
+        pendingSelectionOffset = 0
         recentTask = Task {
             do {
                 let items = try await apiClient.recentlyPlayedTracks(limit: 20)
@@ -577,7 +640,7 @@ extension SearchViewModel {
                     )
                 }
                 recentState = rows.isEmpty ? .empty : .loaded(rows)
-                selectedIndex = 0
+                selectedIndex = consumePendingSelectionIndex(itemCount: rows.count)
             } catch {
                 guard !Task.isCancelled else { return }
                 recentState = .error(Self.libraryErrorMessage(error, fallback: "Couldn't load recent tracks."))
@@ -595,6 +658,7 @@ extension SearchViewModel {
         queueTask?.cancel()
         queueState = .loading
         selectedIndex = 0
+        pendingSelectionOffset = 0
         queueTask = Task {
             do {
                 let response = try await apiClient.currentQueue()
@@ -623,7 +687,7 @@ extension SearchViewModel {
                     }
                 )
                 queueState = rows.isEmpty ? .empty : .loaded(rows)
-                selectedIndex = 0
+                selectedIndex = consumePendingSelectionIndex(itemCount: rows.count)
             } catch {
                 guard !Task.isCancelled else { return }
                 queueState = .error(Self.libraryErrorMessage(error, fallback: "Couldn't load the queue."))

@@ -119,23 +119,29 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
                 self.environment.searchViewModel.cycleMode(backwards: event.modifierFlags.contains(.shift))
                 return nil
             case kVK_UpArrow:
-                if self.environment.searchViewModel.canMoveSelection {
+                if self.environment.searchViewModel.canHandleSelectionMovement {
                     self.environment.searchViewModel.moveSelection(by: -1)
                     return nil
                 }
                 return event
             case kVK_DownArrow:
-                if self.environment.searchViewModel.canMoveSelection {
+                if self.environment.searchViewModel.canHandleSelectionMovement {
                     self.environment.searchViewModel.moveSelection(by: 1)
                     return nil
                 }
                 return event
             case kVK_RightArrow:
-                self.environment.searchViewModel.navigateIntoAlbum()
-                return nil
+                if self.environment.searchViewModel.canNavigateIntoAlbum {
+                    self.environment.searchViewModel.navigateIntoAlbum()
+                    return nil
+                }
+                return event
             case kVK_LeftArrow:
-                self.environment.searchViewModel.navigateBackFromAlbum()
-                return nil
+                if self.environment.searchViewModel.canNavigateBackFromAlbum {
+                    self.environment.searchViewModel.navigateBackFromAlbum()
+                    return nil
+                }
+                return event
             case kVK_Return:
                 if self.environment.searchViewModel.canMoveSelection {
                     if event.modifierFlags.contains(.command) {

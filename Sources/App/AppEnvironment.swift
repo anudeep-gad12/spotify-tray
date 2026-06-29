@@ -433,10 +433,12 @@ final class AppEnvironment: ObservableObject {
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = false
         NSWorkspace.shared.openApplication(at: applicationURL, configuration: configuration) { application, error in
-            if let error {
-                AppLogger.shared.log("background Spotify launch failed error=\(error.localizedDescription)", category: "playback")
-            } else {
-                AppLogger.shared.log("background Spotify launch requested running=\(application != nil)", category: "playback")
+            Task { @MainActor in
+                if let error {
+                    AppLogger.shared.log("background Spotify launch failed error=\(error.localizedDescription)", category: "playback")
+                } else {
+                    AppLogger.shared.log("background Spotify launch requested running=\(application != nil)", category: "playback")
+                }
             }
         }
     }
