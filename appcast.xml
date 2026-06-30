@@ -6,15 +6,15 @@
     <description>SpotifyTray release feed</description>
     <language>en</language>
     <item>
-      <title>v0.3.5</title>
-      <pubDate>Tue, 23 Jun 2026 07:28:43 +0000</pubDate>
-      <sparkle:version>60</sparkle:version>
-      <sparkle:shortVersionString>0.3.5</sparkle:shortVersionString>
+      <title>v0.3.6</title>
+      <pubDate>Tue, 30 Jun 2026 12:32:51 +0000</pubDate>
+      <sparkle:version>61</sparkle:version>
+      <sparkle:shortVersionString>0.3.6</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <enclosure
-        url="https://github.com/anudeep-gad12/spotify-tray/releases/download/v0.3.5/SpotifyTray.app.zip"
-        sparkle:edSignature="BpaywT0JAbwMO7KBUpuk1oPP/spmeMtgHjtQF06DXaVPjNWvWr0J9kYUt11sPshH7jJZFx8tsF3p+P/wLFpgBQ=="
-        length="1778231"
+        url="https://github.com/anudeep-gad12/spotify-tray/releases/download/v0.3.6/SpotifyTray.app.zip"
+        sparkle:edSignature="sId+NBPKwgffRO3S3hGM/j1+NszWWGH2IoVMMcxenodojgdeYKoYDfnEfdf7/sLD1m7AADnuaC6ynn6yy2UWCg=="
+        length="1782023"
         type="application/octet-stream" />
     </item>
   </channel>
