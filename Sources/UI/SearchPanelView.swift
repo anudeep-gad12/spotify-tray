@@ -1,6 +1,18 @@
 import AppKit
 import SwiftUI
 
+enum SearchPanelLayout {
+    /// The visible rounded card.
+    static let cardWidth: CGFloat = 800
+    static let cardHeight: CGFloat = 740
+    static let cornerRadius: CGFloat = 30
+    /// Transparent breathing room around the card so the drop shadow can fade
+    /// out cleanly instead of being crammed into the window's square corners.
+    static let shadowMargin: CGFloat = 64
+    static let windowWidth = cardWidth + shadowMargin * 2
+    static let windowHeight = cardHeight + shadowMargin * 2
+}
+
 struct SearchPanelView: View {
     private enum FocusField: Hashable {
         case search
@@ -43,10 +55,10 @@ struct SearchPanelView: View {
             .padding(.horizontal, 34)
             .padding(.vertical, 30)
         }
-        .frame(width: 800, height: 740)
-        .clipShape(RoundedRectangle(cornerRadius: 30, style: .continuous))
+        .frame(width: SearchPanelLayout.cardWidth, height: SearchPanelLayout.cardHeight)
+        .clipShape(RoundedRectangle(cornerRadius: SearchPanelLayout.cornerRadius, style: .continuous))
         .overlay(
-            RoundedRectangle(cornerRadius: 30, style: .continuous)
+            RoundedRectangle(cornerRadius: SearchPanelLayout.cornerRadius, style: .continuous)
                 .strokeBorder(
                     LinearGradient(
                         colors: [Color.overlayInk.opacity(0.14), Color.overlayInk.opacity(0.045)],
@@ -57,6 +69,8 @@ struct SearchPanelView: View {
                 )
         )
         .shadow(color: Color.panelShadow, radius: 54, y: 26)
+        .padding(SearchPanelLayout.shadowMargin)
+        .frame(width: SearchPanelLayout.windowWidth, height: SearchPanelLayout.windowHeight)
         .preferredColorScheme(appearanceStore.preference.preferredColorScheme)
         .onAppear {
             requestFocus()

@@ -22,7 +22,12 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         self.environment = environment
 
         let panel = SearchPanelWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 800, height: 740),
+            contentRect: NSRect(
+                x: 0,
+                y: 0,
+                width: SearchPanelLayout.windowWidth,
+                height: SearchPanelLayout.windowHeight
+            ),
             styleMask: [.borderless, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -34,7 +39,10 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         panel.hidesOnDeactivate = false
         panel.backgroundColor = .clear
         panel.isOpaque = false
-        panel.hasShadow = true
+        // The card's drop shadow is drawn by SwiftUI within the transparent
+        // margin, so the AppKit window shadow (which would trace the square
+        // window bounds) stays off.
+        panel.hasShadow = false
         panel.delegate = nil
 
         let rootView = SearchPanelView(
@@ -163,7 +171,9 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
 
         let screenFrame = screen.visibleFrame
         let originX = screenFrame.midX - window.frame.width / 2
-        let originY = screenFrame.maxY - window.frame.height - 80
+        // Keep the visible card's top edge 80pt below the screen top; the window
+        // now extends `shadowMargin` beyond the card, so shave that off the gap.
+        let originY = screenFrame.maxY - window.frame.height - (80 - SearchPanelLayout.shadowMargin)
 
         window.setFrameOrigin(NSPoint(x: originX, y: originY))
     }
