@@ -118,6 +118,14 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
         localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self, self.isVisible else { return event }
 
+            if let command = self.terminalEditingCommand(for: event),
+               let fieldEditor = self.window?.firstResponder as? NSTextView,
+               fieldEditor.isFieldEditor,
+               fieldEditor.isEditable {
+                fieldEditor.doCommand(by: command)
+                return nil
+            }
+
             switch Int(event.keyCode) {
             case kVK_Escape:
                 self.environment.closePanel()
@@ -163,6 +171,48 @@ final class SearchPanelController: NSWindowController, NSWindowDelegate {
             default:
                 return event
             }
+        }
+    }
+
+    private func terminalEditingCommand(for event: NSEvent) -> Selector? {
+        let shortcutModifiers = event.modifierFlags.intersection([.control, .option, .shift, .command])
+        if shortcutModifiers == .option {
+            switch Int(event.keyCode) {
+            case kVK_ANSI_B:
+                return #selector(NSResponder.moveWordBackward(_:))
+            case kVK_ANSI_F:
+                return #selector(NSResponder.moveWordForward(_:))
+            default:
+                return nil
+            }
+        }
+        guard shortcutModifiers == .control else { return nil }
+
+        switch Int(event.keyCode) {
+        case kVK_ANSI_A:
+            return #selector(NSResponder.moveToBeginningOfLine(_:))
+        case kVK_ANSI_E:
+            return #selector(NSResponder.moveToEndOfLine(_:))
+        case kVK_ANSI_B:
+            return #selector(NSResponder.moveBackward(_:))
+        case kVK_ANSI_F:
+            return #selector(NSResponder.moveForward(_:))
+        case kVK_ANSI_W:
+            return #selector(NSResponder.deleteWordBackward(_:))
+        case kVK_ANSI_U:
+            return #selector(NSResponder.deleteToBeginningOfLine(_:))
+        case kVK_ANSI_K:
+            return #selector(NSResponder.deleteToEndOfLine(_:))
+        case kVK_ANSI_D:
+            return #selector(NSResponder.deleteForward(_:))
+        case kVK_ANSI_H:
+            return #selector(NSResponder.deleteBackward(_:))
+        case kVK_ANSI_T:
+            return #selector(NSResponder.transpose(_:))
+        case kVK_ANSI_Y:
+            return #selector(NSResponder.yank(_:))
+        default:
+            return nil
         }
     }
 
