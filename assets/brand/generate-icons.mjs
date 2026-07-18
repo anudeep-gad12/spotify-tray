@@ -11,8 +11,10 @@ const sharp = require("sharp");
 const pngToIco = require("png-to-ico");
 const logoSvgPath = join(brandDir, "logo-mark.svg");
 const logoSimpleSvgPath = join(brandDir, "logo-mark-simple.svg");
+const logoTemplateSvgPath = join(brandDir, "logo-mark-template.svg");
 const appIconDir = join(repoRoot, "SpotifyTray/Assets.xcassets/AppIcon.appiconset");
 const logoMarkImageSetDir = join(repoRoot, "SpotifyTray/Assets.xcassets/LogoMark.imageset");
+const menuBarIconImageSetDir = join(repoRoot, "SpotifyTray/Assets.xcassets/MenuBarIcon.imageset");
 const sitePublicDir = join(repoRoot, "site/public");
 
 const macIconSizes = [
@@ -28,6 +30,12 @@ const macIconSizes = [
   { filename: "icon_512x512@2x.png", size: 1024, simple: false },
 ];
 
+// Menu bar status items render at ~18pt; provide 1x/2x template PNGs.
+const menuBarIconSizes = [
+  { filename: "menu-bar-icon.png", size: 18 },
+  { filename: "menu-bar-icon@2x.png", size: 36 },
+];
+
 async function renderPng(svgBuffer, size) {
   return sharp(svgBuffer, { density: Math.max(96, Math.ceil((size / 512) * 384)) })
     .resize(size, size, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
@@ -38,9 +46,11 @@ async function renderPng(svgBuffer, size) {
 async function main() {
   const logoSvgBuffer = readFileSync(logoSvgPath);
   const logoSimpleSvgBuffer = readFileSync(logoSimpleSvgPath);
+  const logoTemplateSvgBuffer = readFileSync(logoTemplateSvgPath);
 
   mkdirSync(appIconDir, { recursive: true });
   mkdirSync(logoMarkImageSetDir, { recursive: true });
+  mkdirSync(menuBarIconImageSetDir, { recursive: true });
   mkdirSync(sitePublicDir, { recursive: true });
 
   console.log("Generating macOS app icons...");
@@ -51,6 +61,30 @@ async function main() {
     writeFileSync(outputPath, pngBuffer);
     console.log(`  ${filename} (${size}x${size}${simple ? ", simple" : ""})`);
   }
+
+  console.log("Generating menu bar template icons...");
+  for (const { filename, size } of menuBarIconSizes) {
+    const outputPath = join(menuBarIconImageSetDir, filename);
+    const pngBuffer = await renderPng(logoTemplateSvgBuffer, size);
+    writeFileSync(outputPath, pngBuffer);
+    console.log(`  ${filename} (${size}x${size})`);
+  }
+  writeFileSync(
+    join(menuBarIconImageSetDir, "Contents.json"),
+    `${JSON.stringify(
+      {
+        images: [
+          { filename: "menu-bar-icon.png", idiom: "universal", scale: "1x" },
+          { filename: "menu-bar-icon@2x.png", idiom: "universal", scale: "2x" },
+        ],
+        info: { author: "xcode", version: 1 },
+        properties: { "template-rendering-intent": "template" },
+      },
+      null,
+      2
+    )}\n`
+  );
+  console.log("  Contents.json (template)");
 
   console.log("Generating site assets...");
   copyFileSync(logoSvgPath, join(logoMarkImageSetDir, "logo-mark.svg"));

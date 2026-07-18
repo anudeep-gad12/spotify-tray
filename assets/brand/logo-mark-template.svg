@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SpotifyTray">
+  <!-- Monochrome template mark: magnifying glass only, no filled background -->
+  <circle cx="220" cy="220" r="128" fill="none" stroke="#000000" stroke-width="52"/>
+  <rect x="318" y="318" width="52" height="168" rx="26" fill="#000000" transform="rotate(45 344 402)"/>
+</svg>

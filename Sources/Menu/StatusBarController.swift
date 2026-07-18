@@ -15,8 +15,14 @@ final class StatusBarController: NSObject {
             return
         }
 
-        if let symbolImage = NSImage(
-            systemSymbolName: "music.note.list",
+        if let logoImage = NSImage(named: "MenuBarIcon") {
+            logoImage.isTemplate = true
+            logoImage.size = NSSize(width: 18, height: 18)
+            button.image = logoImage
+            button.imagePosition = .imageOnly
+            button.title = ""
+        } else if let symbolImage = NSImage(
+            systemSymbolName: "magnifyingglass",
             accessibilityDescription: "SpotifyTray"
         ) {
             let configuration = NSImage.SymbolConfiguration(pointSize: 14, weight: .medium)
@@ -30,6 +36,7 @@ final class StatusBarController: NSObject {
             button.title = "♪"
         }
 
+        button.toolTip = "SpotifyTray"
         refreshMenu()
     }
 
