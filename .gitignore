@@ -9,14 +9,6 @@ SpotifyTray.xcodeproj/xcuserdata/
 SpotifyTray.xcodeproj/project.xcworkspace/xcuserdata/
 .codex/
 .pnpm-store/
-site/node_modules/
-site/dist/
-site/*.tsbuildinfo
-site/*.js
-site/*.d.ts
-# site uses pnpm — ignore npm/yarn lockfiles if created accidentally
-site/package-lock.json
-site/yarn.lock
 assets/brand/node_modules/
 assets/spotifytray-demo.gif
 .fluxion/

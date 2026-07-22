@@ -8,14 +8,12 @@ const brandDir = __dirname;
 const repoRoot = resolve(__dirname, "../..");
 const require = createRequire(join(brandDir, "package.json"));
 const sharp = require("sharp");
-const pngToIco = require("png-to-ico");
 const logoSvgPath = join(brandDir, "logo-mark.svg");
 const logoSimpleSvgPath = join(brandDir, "logo-mark-simple.svg");
 const logoTemplateSvgPath = join(brandDir, "logo-mark-template.svg");
 const appIconDir = join(repoRoot, "SpotifyTray/Assets.xcassets/AppIcon.appiconset");
 const logoMarkImageSetDir = join(repoRoot, "SpotifyTray/Assets.xcassets/LogoMark.imageset");
 const menuBarIconImageSetDir = join(repoRoot, "SpotifyTray/Assets.xcassets/MenuBarIcon.imageset");
-const sitePublicDir = join(repoRoot, "site/public");
 
 const macIconSizes = [
   { filename: "icon_16x16.png", size: 16, simple: true },
@@ -51,7 +49,6 @@ async function main() {
   mkdirSync(appIconDir, { recursive: true });
   mkdirSync(logoMarkImageSetDir, { recursive: true });
   mkdirSync(menuBarIconImageSetDir, { recursive: true });
-  mkdirSync(sitePublicDir, { recursive: true });
 
   console.log("Generating macOS app icons...");
   for (const { filename, size, simple } of macIconSizes) {
@@ -86,24 +83,9 @@ async function main() {
   );
   console.log("  Contents.json (template)");
 
-  console.log("Generating site assets...");
+  console.log("Updating app logo asset...");
   copyFileSync(logoSvgPath, join(logoMarkImageSetDir, "logo-mark.svg"));
-  copyFileSync(logoSvgPath, join(sitePublicDir, "logo-mark.svg"));
-  copyFileSync(logoSvgPath, join(sitePublicDir, "favicon.svg"));
-
-  const favicon16 = await renderPng(logoSimpleSvgBuffer, 16);
-  const favicon32 = await renderPng(logoSimpleSvgBuffer, 32);
-  const favicon48 = await renderPng(logoSimpleSvgBuffer, 48);
-  const faviconIco = await pngToIco([favicon16, favicon32, favicon48]);
-  writeFileSync(join(sitePublicDir, "favicon.ico"), faviconIco);
-  console.log("  favicon.ico");
-
-  const appleTouchIcon = await renderPng(logoSvgBuffer, 180);
-  writeFileSync(join(sitePublicDir, "apple-touch-icon.png"), appleTouchIcon);
-  console.log("  apple-touch-icon.png (180x180)");
-
   console.log("  logo-mark.svg");
-  console.log("  favicon.svg");
   console.log("Done.");
 }
 
